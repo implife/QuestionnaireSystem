@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("QuestionnaireSystem.ORM")]
+[assembly: AssemblyTitle("QuestionnaireSystem.DBSource")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("QuestionnaireSystem.ORM")]
+[assembly: AssemblyProduct("QuestionnaireSystem.DBSource")]
 [assembly: AssemblyCopyright("Copyright ©  2021")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("dfd7da34-f207-45ba-a35a-591a88db5ff2")]
+[assembly: Guid("e695e0e0-b89e-4285-8c87-179a319d41ff")]
 
 // Version information for an assembly consists of the following four values:
 //

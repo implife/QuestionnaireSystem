@@ -17,6 +17,7 @@
             text-align: center;
             padding: 10px;
         }
+
         .all_blank_msg {
             padding-top: 17px;
             color: red;
@@ -32,7 +33,7 @@
             $('form').submit(function (event) {
                 $('.all_blank_msg').css('visibility', 'hidden');
                 $('#input_search_end').removeClass('myInvalid').siblings('.invalid-feedback').css('display', 'none');
-                    
+
 
                 let txtTitle = $('#input_search_title').val().trim();
                 let txtStart = $('#input_search_start').val();
@@ -69,8 +70,8 @@
 
         });
 
-        
-        
+
+
     </script>
 </head>
 <body>
@@ -135,86 +136,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr>
-                            <th scope="row">543</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">544</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td>舞蹈馬諦斯-2021名人會客室</td>
-                            <td>已完結</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td>舞蹈馬諦斯-2021名人會客室</td>
-                            <td>尚未開始</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td>前往</td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">545</th>
-                            <td><a href="#">舞蹈馬諦斯-2021名人會客室</a></td>
-                            <td>投票中</td>
-                            <td>2021/09/01</td>
-                            <td>2021/09/20</td>
-                            <td><a href="#">前往</a></td>
-                        </tr>
+                        <asp:Literal ID="ltlQList" runat="server"></asp:Literal>
                     </tbody>
                 </table>
             </div>

@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace QuestionnaireSystem.DBSource
 {
-    class QuestionManager
+    public class QuestionManager
     {
-        private static List<Question> GetQuestionList()
+        public static List<Question> GetQuestionList()
         {
             try
             {
-                using(ContextModel context = new ContextModel())
+                using (ContextModel context = new ContextModel())
                 {
                     return context.Questions.Select(obj => obj).ToList();
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 return null;
             }
