@@ -1,0 +1,19 @@
+﻿/* #region Validation */
+input.myValidation.myInvalid {
+    border-color: #dc3545;
+    padding-right: calc(1.5em + .75rem);
+    background-image: url('../img/invalid_mark.svg');
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .1875rem) center;
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+
+input.myValidation.myValid {
+    border-color: #198754;
+    padding-right: calc(1.5em + .75rem);
+    background-image: url('../img/valid_mark.svg');
+    background-repeat: no-repeat;
+    background-position: right calc(.375em + .1875rem) center;
+    background-size: calc(.75em + .375rem) calc(.75em + .375rem);
+}
+/* #endregion Validation */
