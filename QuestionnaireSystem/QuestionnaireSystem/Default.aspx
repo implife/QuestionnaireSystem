@@ -1,5 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Default.aspx.cs" Inherits="QuestionnaireSystem.Default" %>
 
+<%@ Register Src="~/UserControl/ucPager.ascx" TagPrefix="uc1" TagName="ucPager" %>
+
+
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -22,6 +25,12 @@
             padding-top: 17px;
             color: red;
             visibility: hidden;
+        }
+
+        .no_data_msg {
+            text-align: center;
+            color: red;
+            box-shadow: none !important;
         }
     </style>
 
@@ -141,6 +150,11 @@
                 </table>
             </div>
         </div>
+
+        <div class="offset-md-5">
+            <uc1:ucPager runat="server" id="ucPager" Url="Default.aspx" AllowPageCount="5" />
+        </div>
+
     </form>
 </body>
 </html>

@@ -12,7 +12,7 @@ namespace QuestionnaireSystem.ORM.DBModels
         {
         }
 
-        public virtual DbSet<Question> Questions { get; set; }
+        public virtual DbSet<Questionnaire> Questionnaires { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {

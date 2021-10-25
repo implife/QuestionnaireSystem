@@ -6,20 +6,22 @@ namespace QuestionnaireSystem.ORM.DBModels
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("Question")]
-    public partial class Question
+    [Table("Questionnaire")]
+    public partial class Questionnaire
     {
-        public Guid QuestionID { get; set; }
+        public Guid QuestionnaireID { get; set; }
 
         [Required]
         public string Title { get; set; }
 
+        public string Discription { get; set; }
+
+        public int Status { get; set; }
+
         [Column(TypeName = "date")]
-        public DateTime? StartDate { get; set; }
+        public DateTime StartDate { get; set; }
 
         [Column(TypeName = "date")]
         public DateTime? EndDate { get; set; }
-
-        public int Status { get; set; }
     }
 }

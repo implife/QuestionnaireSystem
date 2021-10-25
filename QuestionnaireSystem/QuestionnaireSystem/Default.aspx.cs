@@ -19,42 +19,89 @@ namespace QuestionnaireSystem
 
             if (this.IsPostBack)
             {
-                // 日期搜尋狀態還原
-                this.ltlStartDate.Text = $"<input type='date' class='form-control myValidation' id='input_search_start' " +
-                    $"value={this.HFStartDate.Value} />";
-                this.ltlEndDate.Text = $"<input type='date' class='form-control myValidation' id='input_search_end' " +
-                    $"value={this.HFEndDate.Value} />";
-
+                this.Response.Redirect($"Default.aspx?SearchTitle={this.input_search_title.Text}" +
+                    $"&sDate={this.HFStartDate.Value}&eDate={this.HFEndDate.Value}");
             }
             else
             {
                 this.ltlQList.Text = "";
-                List<Question> Qlist = QuestionManager.GetQuestionList();
+                bool isSearch = false;
+
+                // 處理QueryString
+                string strQueryTitle = this.Request.QueryString["SearchTitle"];
+                string strQueryStartDate = this.Request.QueryString["sDate"];
+                string strQueryEndDate = this.Request.QueryString["eDate"];
+
+                DateTime? queryStartDate = this.CheckDateQuery(strQueryStartDate);
+                DateTime? queryEndDate = this.CheckDateQuery(strQueryEndDate);
+
+                if (strQueryTitle != null || queryStartDate != null || queryEndDate != null)
+                    isSearch = true;
+
+                if (strQueryTitle == "" && queryStartDate == null && queryEndDate == null)
+                    isSearch = false;
+
+                // 狀態還原
+                this.input_search_title.Text = strQueryTitle;
+                if(queryStartDate != null)
+                    this.ltlStartDate.Text = $"<input type='date' class='form-control myValidation' id='input_search_start' " +
+                        $"value={queryStartDate?.ToString("yyyy-MM-dd")} />";
+                if (queryEndDate != null)
+                    this.ltlEndDate.Text = $"<input type='date' class='form-control myValidation' id='input_search_end' " +
+                        $"value={queryEndDate?.ToString("yyyy-MM-dd")} />";
+
+                // 建立等等要Render的Qlist;
+                List<Questionnaire> Qlist = new List<Questionnaire>();
+
+                if (isSearch)
+                {
+                    Qlist = QuestionManager.SearchQuestionnaire(strQueryTitle, queryStartDate, queryEndDate);
+                }
+                else
+                {
+                    Qlist = QuestionManager.GetQuestionnaireList();
+                }
+
                 if (Qlist == null)
                 {
-                    this.ltlQList.Text = "錯誤";
+                    this.ltlQList.Text = "<tr><td colspan='6' class='no_data_msg'>錯誤</td></tr>";
+                    return;
+                }
+                else if(Qlist.Count == 0)
+                {
+                    this.ltlQList.Text = "<tr><td colspan='6' class='no_data_msg'>無結果</td></tr>";
                     return;
                 }
 
                 Qlist = Qlist.Where(obj => obj.Status != 3).ToList();
+                this.ucPager.TotalItemSize = Qlist.Count;
+                int currentPage = this.ucPager.GetCurrentPage();
+                int sizeInPage = this.ucPager.ItemSizeInPage;
+                int startIndex = sizeInPage * (currentPage - 1);
 
-                foreach (Question item in Qlist)
+                // 按開始日期排序，再按所在頁數切割
+                Qlist = Qlist.OrderBy(item => item.StartDate).Skip(startIndex).Take(sizeInPage).ToList();
+
+                // Render Qlist
+                foreach (Questionnaire item in Qlist)
                 {
                     string Qtitle = item.Status == 1 
-                        ? $"<a href='{this.Request.Path + "?QID=" + item.QuestionID}'>{item.Title}</a>" 
+                        ? $"<a href='{"AnswerPage.aspx?QID=" + item.QuestionnaireID}'>{item.Title}</a>" 
                         : item.Title;
                     string endDate = item.EndDate != null ? item.EndDate?.ToString("yyyy-MM-dd") : "--";
 
                 this.ltlQList.Text += 
                         $"<tr>" +
-                        $"<th scope='row'>{item.QuestionID.ToString().Split('-')[0]}</th>" +
+                        $"<th scope='row'>{item.QuestionnaireID.ToString().Split('-')[0]}</th>" +
                         $"<td>{Qtitle}</td>" +
                         $"<td>{this.GetStatusString(item.Status)}</td>" +
-                        $"<td>{item.StartDate?.ToString("yyyy-MM-dd")}</td>" +
+                        $"<td>{item.StartDate.ToString("yyyy-MM-dd")}</td>" +
                         $"<td>{endDate}</td>" +
                         $"<td><a href='#'>前往</a></td>" +
                         $"</tr>";
                 }
+
+                this.ucPager.Bind();
             }
         }
 
@@ -72,6 +119,26 @@ namespace QuestionnaireSystem
                     return "關閉中";
                 default:
                     return "--";
+            }
+        }
+
+        private DateTime? CheckDateQuery(string strDate)
+        {
+            try
+            {
+                if (strDate == null)
+                    throw new NullReferenceException();
+                string[] strStart = strDate.Split('-');
+                if (strStart.Length != 3)
+                    throw new Exception("StartDate bad Query.");
+                int sy = Convert.ToInt32(strStart[0]);
+                int sm = Convert.ToInt32(strStart[1]);
+                int sd = Convert.ToInt32(strStart[2]);
+                return new DateTime(sy, sm, sd);
+            }
+            catch (Exception ex)
+            {
+                return null;
             }
         }
     }

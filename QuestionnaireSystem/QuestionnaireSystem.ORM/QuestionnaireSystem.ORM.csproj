@@ -51,7 +51,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="DBModels\ContextModel.cs" />
-    <Compile Include="DBModels\Question.cs" />
+    <Compile Include="DBModels\Questionnaire.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

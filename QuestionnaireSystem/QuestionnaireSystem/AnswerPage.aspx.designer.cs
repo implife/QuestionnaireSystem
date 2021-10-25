@@ -11,7 +11,7 @@ namespace QuestionnaireSystem
 {
 
 
-    public partial class Default
+    public partial class AnswerPage
     {
 
         /// <summary>
@@ -24,75 +24,48 @@ namespace QuestionnaireSystem
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
-        /// input_search_title control.
+        /// input_name control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox input_search_title;
+        protected global::System.Web.UI.WebControls.TextBox input_name;
 
         /// <summary>
-        /// ltlStartDate control.
+        /// input_phone control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltlStartDate;
+        protected global::System.Web.UI.WebControls.TextBox input_phone;
 
         /// <summary>
-        /// HFStartDate control.
+        /// input_Email control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField HFStartDate;
+        protected global::System.Web.UI.WebControls.TextBox input_Email;
 
         /// <summary>
-        /// ltlEndDate control.
+        /// input_age control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltlEndDate;
+        protected global::System.Web.UI.WebControls.TextBox input_age;
 
         /// <summary>
-        /// HFEndDate control.
+        /// btnConfirm control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField HFEndDate;
-
-        /// <summary>
-        /// btnSearch control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnSearch;
-
-        /// <summary>
-        /// ltlQList control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltlQList;
-
-        /// <summary>
-        /// ucPager control.
-        /// </summary>
-        /// <remarks>
-        /// Auto-generated field.
-        /// To modify move field declaration from designer file to code-behind file.
-        /// </remarks>
-        protected global::QuestionnaireSystem.UserControl.ucPager ucPager;
+        protected global::System.Web.UI.WebControls.Button btnConfirm;
     }
 }
