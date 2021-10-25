@@ -63,5 +63,51 @@ namespace QuestionnaireSystem.DBSource
                 return null;
             }
         }
+
+        public static Questionnaire GetQuestionnaireByID(Guid guid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    return context.Questionnaires.Where(item => item.QuestionnaireID.Equals(guid)).FirstOrDefault();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
+
+        public static List<Question> GetQuestionsByQuestionnaireID(Guid guid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    return context.Questions.Where(item => item.QuestionnaireID.Equals(guid)).OrderBy(item => item.Number).ToList();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+            
+        }
+
+        public static List<Option> GetOptionsByQuestionID(Guid guid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    return context.Options.Where(item => item.QuestionID.Equals(guid)).OrderBy(item => item.Number).ToList();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }

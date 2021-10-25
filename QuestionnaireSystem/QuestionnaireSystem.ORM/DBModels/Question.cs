@@ -6,31 +6,31 @@ namespace QuestionnaireSystem.ORM.DBModels
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("Questionnaire")]
-    public partial class Questionnaire
+    [Table("Question")]
+    public partial class Question
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Questionnaire()
+        public Question()
         {
-            Questions = new HashSet<Question>();
+            Options = new HashSet<Option>();
         }
+
+        public Guid QuestionID { get; set; }
 
         public Guid QuestionnaireID { get; set; }
 
         [Required]
         public string Title { get; set; }
 
-        public string Discription { get; set; }
+        public int Type { get; set; }
 
-        public int Status { get; set; }
+        public int Required { get; set; }
 
-        [Column(TypeName = "date")]
-        public DateTime StartDate { get; set; }
-
-        [Column(TypeName = "date")]
-        public DateTime? EndDate { get; set; }
+        public int Number { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
-        public virtual ICollection<Question> Questions { get; set; }
+        public virtual ICollection<Option> Options { get; set; }
+
+        public virtual Questionnaire Questionnaire { get; set; }
     }
 }

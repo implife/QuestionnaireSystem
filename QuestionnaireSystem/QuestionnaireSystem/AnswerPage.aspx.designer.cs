@@ -24,6 +24,33 @@ namespace QuestionnaireSystem
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// ltlQuestionnaireTitle control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlQuestionnaireTitle;
+
+        /// <summary>
+        /// ltlQuestionnaireStatusTime control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlQuestionnaireStatusTime;
+
+        /// <summary>
+        /// ltlQuestionnaireDiscription control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlQuestionnaireDiscription;
+
+        /// <summary>
         /// input_name control.
         /// </summary>
         /// <remarks>
@@ -58,6 +85,24 @@ namespace QuestionnaireSystem
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox input_age;
+
+        /// <summary>
+        /// ltlQuestionList control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlQuestionList;
+
+        /// <summary>
+        /// ltlQuestionCount control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlQuestionCount;
 
         /// <summary>
         /// btnConfirm control.
