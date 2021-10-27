@@ -12,12 +12,19 @@ namespace QuestionnaireSystem.ORM.DBModels
         {
         }
 
+        public virtual DbSet<Answer> Answers { get; set; }
         public virtual DbSet<Option> Options { get; set; }
         public virtual DbSet<Question> Questions { get; set; }
         public virtual DbSet<Questionnaire> Questionnaires { get; set; }
+        public virtual DbSet<Voter> Voters { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<Question>()
+                .HasMany(e => e.Answers)
+                .WithRequired(e => e.Question)
+                .WillCascadeOnDelete(false);
+
             modelBuilder.Entity<Question>()
                 .HasMany(e => e.Options)
                 .WithRequired(e => e.Question)
@@ -26,6 +33,15 @@ namespace QuestionnaireSystem.ORM.DBModels
             modelBuilder.Entity<Questionnaire>()
                 .HasMany(e => e.Questions)
                 .WithRequired(e => e.Questionnaire)
+                .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<Voter>()
+                .Property(e => e.Phone)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<Voter>()
+                .HasMany(e => e.Answers)
+                .WithRequired(e => e.Voter)
                 .WillCascadeOnDelete(false);
         }
     }

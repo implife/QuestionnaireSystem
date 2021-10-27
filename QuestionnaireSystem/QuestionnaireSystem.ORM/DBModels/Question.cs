@@ -12,6 +12,7 @@ namespace QuestionnaireSystem.ORM.DBModels
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
         public Question()
         {
+            Answers = new HashSet<Answer>();
             Options = new HashSet<Option>();
         }
 
@@ -27,6 +28,9 @@ namespace QuestionnaireSystem.ORM.DBModels
         public int Required { get; set; }
 
         public int Number { get; set; }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
+        public virtual ICollection<Answer> Answers { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Option> Options { get; set; }

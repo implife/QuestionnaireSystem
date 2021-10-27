@@ -11,7 +11,7 @@ namespace QuestionnaireSystem
 {
 
 
-    public partial class AnswerPage
+    public partial class ConfirmPage
     {
 
         /// <summary>
@@ -51,40 +51,40 @@ namespace QuestionnaireSystem
         protected global::System.Web.UI.WebControls.Literal ltlQuestionnaireDiscription;
 
         /// <summary>
-        /// input_name control.
+        /// ltlName control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox input_name;
+        protected global::System.Web.UI.WebControls.Literal ltlName;
 
         /// <summary>
-        /// input_phone control.
+        /// ltlPhone control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox input_phone;
+        protected global::System.Web.UI.WebControls.Literal ltlPhone;
 
         /// <summary>
-        /// input_Email control.
+        /// ltlEmail control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox input_Email;
+        protected global::System.Web.UI.WebControls.Literal ltlEmail;
 
         /// <summary>
-        /// input_age control.
+        /// ltlAge control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.TextBox input_age;
+        protected global::System.Web.UI.WebControls.Literal ltlAge;
 
         /// <summary>
         /// ltlQuestionList control.
@@ -96,22 +96,22 @@ namespace QuestionnaireSystem
         protected global::System.Web.UI.WebControls.Literal ltlQuestionList;
 
         /// <summary>
-        /// ltlQuestionCount control.
+        /// btnModify control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltlQuestionCount;
+        protected global::System.Web.UI.WebControls.Button btnModify;
 
         /// <summary>
-        /// btnCancel control.
+        /// btnReturn control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnCancel;
+        protected global::System.Web.UI.WebControls.Button btnReturn;
 
         /// <summary>
         /// btnConfirm control.
@@ -123,12 +123,12 @@ namespace QuestionnaireSystem
         protected global::System.Web.UI.WebControls.Button btnConfirm;
 
         /// <summary>
-        /// HFAnswer control.
+        /// ltlFailedModal control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.HiddenField HFAnswer;
+        protected global::System.Web.UI.WebControls.Literal ltlFailedModal;
     }
 }

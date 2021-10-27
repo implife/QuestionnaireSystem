@@ -55,6 +55,13 @@
     </style>
 
     <script>
+        var allowNoValidation = false;
+
+        function cancelFun() {
+            allowNoValidation = true;
+        }
+
+
         $(function () {
             $('form').submit(function (event) {
 
@@ -100,18 +107,66 @@
                 }).trigger('keyup');
 
 
-
                 // 基本資料驗證
-                if (!$('input.myValidation').toArray().every(CheckHasValid)) {
+                if (!$('input.myValidation').toArray().every(CheckHasValid) && !allowNoValidation) {
                     event.preventDefault()
                     event.stopPropagation()
                 }
 
                 // 問題驗證
-                if (!$('div.QContainer.required').toArray().every(CheckHasValid)) {
+                if (!$('div.QContainer.required').toArray().every(CheckHasValid) && !allowNoValidation) {
                     event.preventDefault()
                     event.stopPropagation()
                 }
+
+                // 將題目與解答作成Object，每一題做成陣列，以JSON格式放進HiddenField
+                $('input[type=hidden][id$=HFAnswer]').val("");
+                var aryAnswer = new Array();
+
+                for (let item of $('div.QContainer')) {
+                    // 題目類型
+                    let type;
+                    if ($(item).hasClass('text_input'))
+                        type = 0;
+                    else if ($(item).hasClass('single'))
+                        type = 1;
+                    else if ($(item).hasClass('multi'))
+                        type = 2;
+                    else
+                        type = -1;
+
+                    // 該題答案，都做成陣列形式
+                    let tempAns = new Array();
+                    if (type == 0)
+                        tempAns = [$(item).find('input[type=text]').val()];
+                    else if (type == 1) {
+                        if ($(item).find('input[type=radio]:checked').length == 0)
+                            tempAns = [""];
+                        else
+                            tempAns = [$(item).find('input[type=radio]:checked').attr('id').slice(2)];
+                    }
+                    else if (type == 2) {
+                        if ($(item).find('input[type=checkbox]:checked').length == 0)
+                            tempAns = [""];
+                        else {
+                            for (let opt of $(item).find('input[type=checkbox]:checked')) {
+                                tempAns.push($(opt).attr('id').slice(2));
+                            }
+                        }
+                    }
+                    else
+                        tempAns = [""];
+
+                    var objAnswer = {
+                        QuestionID: $(item).attr('id').slice(2),
+                        Type: type,
+                        Answer: tempAns
+                    }
+
+                    aryAnswer.push(objAnswer);
+                }
+
+                $('input[type=hidden][id$=HFAnswer]').val(JSON.stringify(aryAnswer));
             })
         })
     </script>
@@ -128,8 +183,6 @@
 
                 <asp:Literal ID="ltlQuestionnaireStatusTime" runat="server"></asp:Literal>
 
-                <%--投票中<br>
-                2021-08-23 ~ 2021-11-01--%>
             </div>
         </div>
         <p class="discription">
@@ -208,12 +261,14 @@
 
         <div class="row mt-3 mb-5">
             <div class="col-md-1 offset-md-7">
-                <a class="btn btn-secondary" href="Default.aspx" role="button">取消</a>
+                <asp:Button ID="btnCancel" runat="server" Text="取消" CssClass="btn btn-secondary" OnClick="btnCancel_Click" OnClientClick="cancelFun()" />
             </div>
             <div class="col-md-1">
-                <asp:Button ID="btnConfirm" runat="server" Text="送出" CssClass="btn btn-success" />
+                <asp:Button ID="btnConfirm" runat="server" Text="送出" CssClass="btn btn-success" OnClick="btnConfirm_Click" />
             </div>
         </div>
+
+        <asp:HiddenField ID="HFAnswer" runat="server" />
     </form>
 </body>
 </html>

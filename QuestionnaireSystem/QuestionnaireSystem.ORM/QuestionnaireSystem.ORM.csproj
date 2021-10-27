@@ -50,10 +50,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="DBModels\Answer.cs" />
     <Compile Include="DBModels\ContextModel.cs" />
     <Compile Include="DBModels\Option.cs" />
     <Compile Include="DBModels\Question.cs" />
     <Compile Include="DBModels\Questionnaire.cs" />
+    <Compile Include="DBModels\Voter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

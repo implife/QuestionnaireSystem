@@ -6,27 +6,30 @@ namespace QuestionnaireSystem.ORM.DBModels
     using System.ComponentModel.DataAnnotations.Schema;
     using System.Data.Entity.Spatial;
 
-    [Table("Option")]
-    public partial class Option
+    [Table("Voter")]
+    public partial class Voter
     {
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2214:DoNotCallOverridableMethodsInConstructors")]
-        public Option()
+        public Voter()
         {
             Answers = new HashSet<Answer>();
         }
 
-        public Guid OptionID { get; set; }
-
-        public Guid QuestionID { get; set; }
+        public Guid VoterID { get; set; }
 
         [Required]
-        public string OptionContent { get; set; }
+        public string Name { get; set; }
 
-        public int Number { get; set; }
+        [Required]
+        [StringLength(50)]
+        public string Phone { get; set; }
+
+        [Required]
+        public string Email { get; set; }
+
+        public int Age { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Answer> Answers { get; set; }
-
-        public virtual Question Question { get; set; }
     }
 }
