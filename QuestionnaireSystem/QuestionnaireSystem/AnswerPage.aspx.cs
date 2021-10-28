@@ -114,7 +114,7 @@ namespace QuestionnaireSystem
                 {
                     this.ltlQuestionList.Text +=
                         $"<div class='offset-md-2 mt-4 QContainer multi{(item.Required == 0 ? " required" : "")}' id='ID{item.QuestionID}'>" +
-                        $"<h5>{item.Number}. {item.Title}{(item.Required == 0 ? "<span class='required_mark'>*</span><span class='required_msg'>此為必填欄位!</span>" : "")}</h5>" +
+                        $"<h5>{item.Number}. {item.Title} (複選){(item.Required == 0 ? "<span class='required_mark'>*</span><span class='required_msg'>此為必填欄位!</span>" : "")}</h5>" +
                         $"<div class='option_div'>";
 
                     List<Option> optionList = QuestionManager.GetOptionsByQuestionID(item.QuestionID);

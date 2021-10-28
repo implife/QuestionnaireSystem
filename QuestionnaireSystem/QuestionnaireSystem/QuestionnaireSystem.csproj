@@ -88,6 +88,7 @@
     <Content Include="Scripts\bootstrap.js" />
     <Content Include="Scripts\jquery-3.6.0.min.js" />
     <Content Include="Scripts\validation.js" />
+    <Content Include="Statistic.aspx" />
     <Content Include="UserControl\ucPager.ascx" />
     <Content Include="Web.config" />
   </ItemGroup>
@@ -117,6 +118,13 @@
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Statistic.aspx.cs">
+      <DependentUpon>Statistic.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="Statistic.aspx.designer.cs">
+      <DependentUpon>Statistic.aspx</DependentUpon>
+    </Compile>
     <Compile Include="UserControl\ucPager.ascx.cs">
       <DependentUpon>ucPager.ascx</DependentUpon>
       <SubType>ASPXCodeBehind</SubType>

@@ -89,15 +89,18 @@ namespace QuestionnaireSystem
                         ? $"<a href='{"AnswerPage.aspx?QID=" + item.QuestionnaireID}'>{item.Title}</a>" 
                         : item.Title;
                     string endDate = item.EndDate != null ? item.EndDate?.ToString("yyyy-MM-dd") : "--";
+                    string link = (item.Status == 1 || item.Status == 2)
+                        ? $"<a href='Statistic.aspx?QID={item.QuestionnaireID.ToString()}'>前往</a>"
+                        : "前往";
 
-                this.ltlQList.Text += 
+                    this.ltlQList.Text += 
                         $"<tr>" +
                         $"<th scope='row'>{item.QuestionnaireID.ToString().Split('-')[0]}</th>" +
                         $"<td>{Qtitle}</td>" +
                         $"<td>{this.GetStatusString(item.Status)}</td>" +
                         $"<td>{item.StartDate.ToString("yyyy-MM-dd")}</td>" +
                         $"<td>{endDate}</td>" +
-                        $"<td><a href='#'>前往</a></td>" +
+                        $"<td>{link}</td>" +
                         $"</tr>";
                 }
 

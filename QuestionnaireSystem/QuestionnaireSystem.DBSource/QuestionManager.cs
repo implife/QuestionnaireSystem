@@ -64,13 +64,13 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
-        public static Questionnaire GetQuestionnaireByID(Guid guid)
+        public static Questionnaire GetQuestionnaireByID(Guid QuestionnaireGuid)
         {
             try
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Questionnaires.Where(item => item.QuestionnaireID.Equals(guid)).FirstOrDefault();
+                    return context.Questionnaires.Where(item => item.QuestionnaireID.Equals(QuestionnaireGuid)).FirstOrDefault();
                 }
             }
             catch (Exception)
@@ -94,13 +94,13 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
-        public static List<Question> GetQuestionsByQuestionnaireID(Guid guid)
+        public static List<Question> GetQuestionsByQuestionnaireID(Guid QuestionnaireGuid)
         {
             try
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Questions.Where(item => item.QuestionnaireID.Equals(guid)).OrderBy(item => item.Number).ToList();
+                    return context.Questions.Where(item => item.QuestionnaireID.Equals(QuestionnaireGuid)).OrderBy(item => item.Number).ToList();
                 }
             }
             catch (Exception)
@@ -110,13 +110,13 @@ namespace QuestionnaireSystem.DBSource
 
         }
 
-        public static Question GetQuestionByQuestionID(Guid guid)
+        public static Question GetQuestionByQuestionID(Guid QuestionGuid)
         {
             try
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Questions.Where(item => item.QuestionID.Equals(guid)).FirstOrDefault();
+                    return context.Questions.Where(item => item.QuestionID.Equals(QuestionGuid)).FirstOrDefault();
                 }
             }
             catch (Exception)
@@ -125,13 +125,18 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
-        public static List<Option> GetOptionsByQuestionID(Guid guid)
+        /// <summary>
+        /// 輸入QuestionID回傳該問題的選項List,問題為文字方塊時List為空
+        /// </summary>
+        /// <param name="QuestionGuid"></param>
+        /// <returns></returns>
+        public static List<Option> GetOptionsByQuestionID(Guid QuestionGuid)
         {
             try
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Options.Where(item => item.QuestionID.Equals(guid)).OrderBy(item => item.Number).ToList();
+                    return context.Options.Where(item => item.QuestionID.Equals(QuestionGuid)).OrderBy(item => item.Number).ToList();
                 }
             }
             catch (Exception)
@@ -140,13 +145,13 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
-        public static Option GetOptionByOptionID(Guid guid)
+        public static Option GetOptionByOptionID(Guid OptionGuid)
         {
             try
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Options.Where(item => item.OptionID.Equals(guid)).FirstOrDefault();
+                    return context.Options.Where(item => item.OptionID.Equals(OptionGuid)).FirstOrDefault();
                 }
             }
             catch (Exception)
@@ -286,6 +291,41 @@ namespace QuestionnaireSystem.DBSource
 
         }
 
-        
+        public static int GetTotalVoterQuantity(Guid QuestionnaireGuid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    Guid firstGuid = GetQuestionsByQuestionnaireID(QuestionnaireGuid)[0].QuestionID; ;
+
+                    return context.Answers.Where(obj => obj.QuestionID.Equals(firstGuid))
+                        .Select(obj => obj.VoterID).Distinct().Count();
+                }
+            }
+            catch (Exception)
+            {
+                return -1;
+            }
+        }
+
+        public static List<int> GetVotersCountOfEveryOption(Guid questionGuid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    List<Option> options = GetOptionsByQuestionID(questionGuid);
+                    return options.Select(item =>
+                        {
+                            return context.Answers.Where(obj => obj.OptionID == item.OptionID).Count();
+                        }).ToList();
+                }
+            }
+            catch (Exception)
+            {
+                return null;
+            }
+        }
     }
 }
