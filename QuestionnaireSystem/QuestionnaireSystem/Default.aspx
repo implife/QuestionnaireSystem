@@ -32,6 +32,17 @@
             color: red;
             box-shadow: none !important;
         }
+
+        #input_search_start {
+            position:relative;
+            overflow: visible;
+        }
+        #input_search_start::after {
+            content: "~";
+            position: absolute;
+            left: calc(100% + var(--bs-gutter-x) * .25);
+            font-size: 22px;
+        }
     </style>
 
     <script>
@@ -115,7 +126,7 @@
                     </div>
                 </div>
                 <div class="col-md-2">
-                    <label for="input_search_end" class="col-form-label">結束日</label>
+                    <label for="input_search_end" class="col-form-label">&#x2004;</label>
 
                     <asp:Literal ID="ltlEndDate" runat="server"></asp:Literal>
                     <asp:HiddenField ID="HFEndDate" runat="server" />

@@ -215,6 +215,7 @@ namespace QuestionnaireSystem
             this.input_age.Enabled = false;
             this.btnConfirm.Enabled = false;
             this.btnConfirm.Visible = false;
+            this.btnCancel.Attributes.Add("data-Error", "true");
         }
 
         protected void btnConfirm_Click(object sender, EventArgs e)

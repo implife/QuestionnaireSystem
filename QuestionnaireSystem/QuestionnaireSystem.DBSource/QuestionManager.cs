@@ -309,6 +309,11 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
+        /// <summary>
+        /// 取得特定問題的各個選項得票數，文字方塊則回傳空的List
+        /// </summary>
+        /// <param name="questionGuid"></param>
+        /// <returns></returns>
         public static List<int> GetVotersCountOfEveryOption(Guid questionGuid)
         {
             try
@@ -325,6 +330,46 @@ namespace QuestionnaireSystem.DBSource
             catch (Exception)
             {
                 return null;
+            }
+        }
+
+        public static bool CheckStatus()
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    // 檢查未開放的問卷
+                    List<Questionnaire> listNotStart = context.Questionnaires.Where(item => item.Status == 0).ToList();
+                    foreach (Questionnaire item in listNotStart)
+                    {
+                        if(item.StartDate.Date <= DateTime.Now.Date)
+                        {
+                            context.Questionnaires.Where(obj => obj.QuestionnaireID == item.QuestionnaireID)
+                                .FirstOrDefault().Status = 1;
+                        }
+                    }
+
+                    // 檢查投票中的問卷
+                    List<Questionnaire> listVoting = context.Questionnaires.Where(item => item.Status == 1).ToList();
+                    foreach (Questionnaire item in listVoting)
+                    {
+                        if (item.EndDate == null)
+                            continue;
+
+                        if (((DateTime)item.EndDate).Date <= DateTime.Now.Date)
+                        {
+                            context.Questionnaires.Where(obj => obj.QuestionnaireID == item.QuestionnaireID)
+                                .FirstOrDefault().Status = 2;
+                        }
+                    }
+                    context.SaveChanges();
+                    return true;
+                }
+            }
+            catch (Exception)
+            {
+                return false;
             }
         }
     }

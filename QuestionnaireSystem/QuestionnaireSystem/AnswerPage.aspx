@@ -49,9 +49,10 @@
             font-size: .75em !important;
             visibility: hidden;
         }
-        span.required_msg.myShow {
-            visibility: visible;
-        }
+
+            span.required_msg.myShow {
+                visibility: visible;
+            }
     </style>
 
     <script>
@@ -63,6 +64,14 @@
 
 
         $(function () {
+            // 問卷是Error的狀態不必有Modal，直接回列表頁
+            if ($('input#btnCancel').attr('data-error') == 'true') {
+                $('a#btnCancelModal').attr('data-bs-target', '').attr('data-bs-toggle', '')
+                    .attr('href', 'Default.aspx');
+            }
+
+
+            // submit時
             $('form').submit(function (event) {
 
                 // radiobutton validation
@@ -176,7 +185,8 @@
         <div class="row">
             <div class="col-md-4 offset-md-4">
 
-                <h3><asp:Literal ID="ltlQuestionnaireTitle" runat="server"></asp:Literal></h3>
+                <h3>
+                    <asp:Literal ID="ltlQuestionnaireTitle" runat="server"></asp:Literal></h3>
 
             </div>
             <div class="col-md-4 status_time">
@@ -261,12 +271,30 @@
 
         <div class="row mt-3 mb-5">
             <div class="col-md-1 offset-md-7">
-                <asp:Button ID="btnCancel" runat="server" Text="取消" CssClass="btn btn-secondary" OnClick="btnCancel_Click" OnClientClick="cancelFun()" />
+                <a class="btn btn-secondary" id="btnCancelModal" href="#" role="button" data-bs-toggle="modal" data-bs-target="#CancelCheckModal">返回</a>
             </div>
             <div class="col-md-1">
                 <asp:Button ID="btnConfirm" runat="server" Text="送出" CssClass="btn btn-success" OnClick="btnConfirm_Click" />
             </div>
         </div>
+
+        <%-- 返回紐的確認Modal --%>
+        <div class="modal fade" id="CancelCheckModal" data-bs-keyboard="false" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            填寫的資料將不會儲存，確定執行嗎?
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <asp:Button ID="btnCancel" runat="server" Text="確定" CssClass="btn btn-primary" OnClick="btnCancel_Click" OnClientClick="cancelFun()" />
+                    </div>
+                </div>
+            </div>
+        </div>
+
 
         <asp:HiddenField ID="HFAnswer" runat="server" />
     </form>
