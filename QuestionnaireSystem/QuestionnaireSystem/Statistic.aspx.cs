@@ -87,7 +87,7 @@ namespace QuestionnaireSystem
                     foreach (int count in countEveryOption)
                     {
                         string strCount = ((double)count * 100 / totalVotersCount).ToString("0.##");
-                        strCount = strCount == "" ? "0" : strCount;
+                        strCount = (strCount == "" || strCount == "NaN") ? "0" : strCount;
                         this.ltlQuestionList.Text +=
                             $"<div class='myOption'>" +
                             $"<div class='option_content'>{options[i].OptionContent}</div>" +
