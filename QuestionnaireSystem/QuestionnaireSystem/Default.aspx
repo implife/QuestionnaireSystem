@@ -16,6 +16,12 @@
     <script src="Scripts/validation.js"></script>
 
     <style>
+        .login_div {
+            position: fixed;
+            top: 15px;
+            right: 8%;
+        }
+
         h3 {
             text-align: center;
             padding: 10px;
@@ -96,6 +102,11 @@
 </head>
 <body>
     <form id="form1" runat="server">
+        <div class="login_div">
+            <asp:Literal ID="ltlLogin" runat="server"></asp:Literal>
+            <%--<a class="btn btn-info" href="Login.aspx" role="button">登入</a>--%>
+        </div>
+
         <h3>問卷調查</h3>
         <div class="search_div">
             <div class="row">

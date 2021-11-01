@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -16,6 +17,30 @@ namespace QuestionnaireSystem
             this.input_search_title.Attributes.Add("placeholder", "問卷標題");
             this.ltlStartDate.Text = "<input type='date' class='form-control myValidation' id='input_search_start' />";
             this.ltlEndDate.Text = "<input type='date' class='form-control myValidation' id='input_search_end' />";
+
+            //檢查登入狀態
+            if (this.Request.IsAuthenticated)
+            {
+                string id = (HttpContext.Current.User.Identity as FormsIdentity).Ticket.UserData;
+                Guid logInUserGuid;
+                try
+                {
+                    logInUserGuid = Guid.Parse(id);
+                    UserInfo currentUser = UserInfoManager.GetUserInfoByUserID(logInUserGuid);
+
+                    this.ltlLogin.Text = $"<a class='btn btn-outline-info' href='/SystemAdmin/QuestionnaireList.aspx' role='button'>後台管理</a>";
+                }
+                catch (Exception ex)
+                {
+                    this.ltlLogin.Text = "<a class='btn btn-info' href='Login.aspx' role='button'>登入</a>";
+                }
+                
+            }
+            else
+            {
+                this.ltlLogin.Text = "<a class='btn btn-info' href='Login.aspx' role='button'>登入</a>";
+            }
+
 
             if (this.IsPostBack)
             {
