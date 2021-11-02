@@ -21,6 +21,24 @@ namespace QuestionnaireSystem
             this.login_PWD.Attributes.Add("min", "6");
             this.login_PWD.Attributes.Add("max", "20");
 
+            //檢查登入狀態
+            if (this.Request.IsAuthenticated)
+            {
+                string id = (HttpContext.Current.User.Identity as FormsIdentity).Ticket.UserData;
+                Guid logInUserGuid;
+                try
+                {
+                    logInUserGuid = Guid.Parse(id);
+                    UserInfo currentUser = UserInfoManager.GetUserInfoByUserID(logInUserGuid);
+
+                    this.Response.Redirect("Default.aspx");
+                }
+                catch (Exception ex)
+                {
+                    
+                }
+
+            }
         }
 
         protected void btnLogin_Click(object sender, EventArgs e)

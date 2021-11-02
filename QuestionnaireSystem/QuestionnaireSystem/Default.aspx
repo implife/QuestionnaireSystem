@@ -104,7 +104,6 @@
     <form id="form1" runat="server">
         <div class="login_div">
             <asp:Literal ID="ltlLogin" runat="server"></asp:Literal>
-            <%--<a class="btn btn-info" href="Login.aspx" role="button">登入</a>--%>
         </div>
 
         <h3>問卷調查</h3>
