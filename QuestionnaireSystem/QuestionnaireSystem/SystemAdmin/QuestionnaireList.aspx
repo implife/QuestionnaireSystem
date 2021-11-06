@@ -65,12 +65,22 @@
             padding: 8px 0;
         }
 
-            .delete_add_div button {
+            .delete_add_div > button,
+            .delete_add_div > a {
                 border: none;
+                color: #000;
+                box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
             }
-            .delete_add_div > .btn-outline-success:hover {
-                background-color: #1cb01c;
-                border-color: #1cb01c;
+            .delete_add_div > button.btn-outline-danger:hover {
+                background-color: #fff;
+                border-color: #fff;
+                color: #dc3545;
+            }
+            .delete_add_div > a.btn-outline-success:hover {
+                background-color: #fff;
+                border-color: #fff;
+                color: #198722;
+
             }
     </style>
 
@@ -191,11 +201,11 @@
                                     <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
                                 </svg>
                             </button>
-                            <button type="button" class="btn btn-outline-success">
+                            <a type="button" class="btn btn-outline-success" href="Detail.aspx" role="button">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-plus-lg" viewBox="0 0 16 16">
                                     <path fill-rule="evenodd" d="M8 2a.5.5 0 0 1 .5.5v5h5a.5.5 0 0 1 0 1h-5v5a.5.5 0 0 1-1 0v-5h-5a.5.5 0 0 1 0-1h5v-5A.5.5 0 0 1 8 2Z" />
                                 </svg>
-                            </button>
+                            </a>
                         </div>
                         <table class="table table-striped">
                             <thead>

@@ -372,5 +372,83 @@ namespace QuestionnaireSystem.DBSource
                 return false;
             }
         }
+
+        public static bool CreateNewQuestionnaire(QuestionnaireClass questionnaire )
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    // 處理開始日期、結束日期
+                    string[] sDate = questionnaire.StartDate.Split('-');
+                    DateTime startDate = new DateTime(Convert.ToInt32(sDate[0]), Convert.ToInt32(sDate[1]), Convert.ToInt32(sDate[2]));
+                    string[] eDate = questionnaire.EndDate.Split('-');
+                    DateTime? endDate;
+                    if (eDate.Length != 3)
+                        endDate = null;
+                    else
+                        endDate = new DateTime(Convert.ToInt32(eDate[0]), Convert.ToInt32(eDate[1]), Convert.ToInt32(eDate[2]));
+
+                    // 處理Status
+                    int status;
+                    if(questionnaire.Active == 0)
+                    {
+                        if (startDate == DateTime.Now.Date)
+                            status = 1;
+                        else
+                            status = 0;
+                    }
+                    else
+                    {
+                        status = 3;
+                    }
+
+                    // 問卷
+                    Guid currentQuestionnaireID = Guid.NewGuid();
+                    context.Questionnaires.Add(new Questionnaire()
+                    {
+                        QuestionnaireID = currentQuestionnaireID,
+                        Title = questionnaire.QuestionnaireTitle,
+                        Discription = questionnaire.Description,
+                        StartDate = startDate,
+                        EndDate = endDate,
+                        Status = status
+                    });
+
+                    foreach (QuestionClass item in questionnaire.Questions)
+                    {
+                        // 問題
+                        Guid currentQuestionID = Guid.NewGuid();
+                        context.Questions.Add(new Question()
+                        {
+                            QuestionID = currentQuestionID,
+                            QuestionnaireID = currentQuestionnaireID,
+                            Title = item.QuestionTitle,
+                            Type = item.QuestionType,
+                            Required = item.QuestionRequired,
+                            Number = item.QuestionNumber
+                        });
+
+                        foreach (OptionClass opt in item.Options)
+                        {
+                            // 選項
+                            context.Options.Add(new Option()
+                            {
+                                OptionID = Guid.NewGuid(),
+                                QuestionID = currentQuestionID,
+                                OptionContent = opt.OptionContent,
+                                Number = opt.OptionNumber
+                            });
+                        }
+                    }
+                    context.SaveChanges();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
     }
 }

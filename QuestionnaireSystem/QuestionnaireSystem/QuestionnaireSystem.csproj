@@ -84,6 +84,7 @@
     <Content Include="Default.aspx" />
     <Content Include="Global.asax" />
     <Content Include="img\check-lg.svg" />
+    <Content Include="img\exclamation-lg.svg" />
     <Content Include="img\invalid_mark.svg" />
     <Content Include="img\trash.svg" />
     <Content Include="img\valid_mark.svg" />
