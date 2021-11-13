@@ -37,12 +37,13 @@ namespace QuestionnaireSystem
             string path = request.Url.PathAndQuery;
 
             // SystemAdmin下的頁面都要經過登入檢查
-            if (path.StartsWith("/SystemAdmin", StringComparison.InvariantCultureIgnoreCase))
+            if (path.StartsWith("/SystemAdmin", StringComparison.InvariantCultureIgnoreCase) ||
+                path.StartsWith("/Handler", StringComparison.InvariantCultureIgnoreCase))
             {
                 var user = HttpContext.Current.User;
                 if (!request.IsAuthenticated || user == null)
                 {
-                    response.StatusCode = 403;
+                    response.StatusCode = 401;
                     response.End();
                     return;
                 }
@@ -51,7 +52,7 @@ namespace QuestionnaireSystem
 
                 if (identity == null)
                 {
-                    response.StatusCode = 403;
+                    response.StatusCode = 401;
                     response.End();
                     return;
                 }

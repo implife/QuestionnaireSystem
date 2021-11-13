@@ -31,11 +31,6 @@ namespace QuestionnaireSystem.ORM.DBModels
                 .WithRequired(e => e.Question)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<Questionnaire>()
-                .HasMany(e => e.Questions)
-                .WithRequired(e => e.Questionnaire)
-                .WillCascadeOnDelete(false);
-
             modelBuilder.Entity<UserInfo>()
                 .Property(e => e.PWD)
                 .IsUnicode(false);

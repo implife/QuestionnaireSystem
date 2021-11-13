@@ -102,7 +102,7 @@ namespace QuestionnaireSystem
                 Question tempQ = QuestionManager.GetQuestionByQuestionID(Guid.Parse(item.QuestionID));
                 this.ltlQuestionList.Text +=
                     $"<div class='offset-md-2 mt-4 QContainer id='ID{item.QuestionID}'>" +
-                    $"<h5>{tempQ.Number}. {tempQ.Title} (複選)</h5>" +
+                    $"<h5>{tempQ.Number}. {tempQ.Title} {(tempQ.Type == 2 ? " (複選)" : "")}</h5>" +
                     $"<div class='option_div'>";
 
                 if(item.Answer[0] == "")

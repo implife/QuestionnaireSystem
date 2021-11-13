@@ -1,4 +1,5 @@
-﻿using System;
+﻿using QuestionnaireSystem.ORM.DBModels;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -18,10 +19,12 @@ namespace QuestionnaireSystem.DBSource
 
     public class QuestionClass
     {
+        public string QuestionID { get; set; }
         public string QuestionTitle { get; set; }
         public int QuestionType { get; set; }
         public int QuestionRequired { get; set; }
         public int QuestionNumber { get; set; }
+        public string FAQName { get; set; }
         public OptionClass[] Options { get; set; }
     }
 

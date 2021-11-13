@@ -1,5 +1,8 @@
 ﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="Detail.aspx.cs" Inherits="QuestionnaireSystem.SystemAdmin.Detail" %>
 
+<%@ Register Src="~/UserControl/ucPager.ascx" TagPrefix="uc1" TagName="ucPager" %>
+
+
 <!DOCTYPE html>
 
 <html xmlns="http://www.w3.org/1999/xhtml">
@@ -49,6 +52,11 @@
 
         .table_container {
             min-height: 350px;
+        }
+
+        ul.nav img {
+            margin-bottom: 3px;
+            margin-right: 3px;
         }
 
         /*#region 問卷分頁 */
@@ -148,7 +156,7 @@
             margin-left: 8px;
         }
 
-        .questionModeHidden {
+        .questionModeHidden, .questionOptionHidden {
             display: none;
         }
 
@@ -180,6 +188,10 @@
             font-size: 1.2rem !important;
         }
 
+        #voteTabContent a > svg {
+            margin-bottom: 4px;
+        }
+
         /*#endregion 回答分頁 */
 
         /*#region 統計分頁 */
@@ -195,8 +207,14 @@
     </style>
 
     <script>
-        var QDeleteModal;
-        var CreateFailedModal;
+        var QDeleteModal, CreateFailedModal, QuestionnaireModifyModal, QuestionModifyModal;
+        var FAQJSONObj = JSON.parse('<%= this.FAQJSONString %>');
+        var currentQuestionnaireID = '<%= QuestionnaireID %>';
+        var AnswerTabContent;   // 儲存回答分頁的HTML
+        var QuestionnaireTabModify = '';    // 問卷分頁變更時Session的值
+        var QuestionTabModify = '';
+        var SubmitStatus = ''; // 分成New、QuestionnaireModify、QuestionModify
+        var AllowSubmit = false;
 
 
         // 選項欄位輸入檢查用
@@ -208,8 +226,11 @@
                 return true;
         }
 
-        // 新增問題的送出紐
+        // 新增(修改)問題的送出紐
         function btnQuestionAddClick() {
+            let fromDatabase = $('#questionTbody').children('tr.questionSelected').length == 0
+                ? false
+                : $('#questionTbody').children('tr.questionSelected').hasClass('fromDatabase');
             let questionMode = $('#questionMode > option:selected').val();
             let questionTitle = $('#question_title').val().trim();
             let questionType = $('select#questionType option:selected').val();
@@ -228,18 +249,49 @@
                 $('input#question_title').siblings('.invalid-feedback').html('').css('display', 'none');
             }
 
+
             // 檢查option
             if (questionType != 'text') {
-                let result = optionStr.split(';').every(optionStringTest);
+                // 編輯模式並且編輯的問題是從資料庫來的
+                if (fromDatabase) {
+                    let $target = $('#questionTbody').children('tr.questionSelected');
+                    let originalOptions = $target.find('td').eq(6).text();
+                    let originalSize = originalOptions.split(';').length;
+                    let optionAry = optionStr.split(';');
 
-                if (result) {  // 格式正確
-                    $('input#question_option').addClass('QValid').removeClass('QInvalid');
+                    if (optionAry.length < originalSize) {
+                        $('input#question_option').addClass('QInvalid').removeClass('QValid');
 
-                    $('input#question_option').siblings('.invalid-feedback').html('').css('display', 'none');
-                } else {  // 格式錯誤
-                    $('input#question_option').addClass('QInvalid').removeClass('QValid');
+                        $('input#question_option').siblings('.invalid-feedback').html('分號數量須至少' + (originalSize - 1) + '個').css('display', 'block');
+                    }
+                    else {
+                        optionAry.splice(0, originalSize);
+                        let result = optionAry.every(optionStringTest); // backPart為空的話一定是true
 
-                    $('input#question_option').siblings('.invalid-feedback').html('格式不正確').css('display', 'block');
+                        if (result) {  // 格式正確
+                            $('input#question_option').addClass('QValid').removeClass('QInvalid');
+
+                            $('input#question_option').siblings('.invalid-feedback').html('').css('display', 'none');
+                        } else {  // 格式錯誤
+                            $('input#question_option').addClass('QInvalid').removeClass('QValid');
+
+                            $('input#question_option').siblings('.invalid-feedback').html('第' + originalSize + '個分號開始前後不可為空').css('display', 'block');
+                        }
+                    }
+                }
+                // 編輯的問題不是從資料庫來的, 或新增問題
+                else {
+                    let result = optionStr.split(';').every(optionStringTest);
+
+                    if (result) {  // 格式正確
+                        $('input#question_option').addClass('QValid').removeClass('QInvalid');
+
+                        $('input#question_option').siblings('.invalid-feedback').html('').css('display', 'none');
+                    } else {  // 格式錯誤
+                        $('input#question_option').addClass('QInvalid').removeClass('QValid');
+
+                        $('input#question_option').siblings('.invalid-feedback').html('格式不正確').css('display', 'block');
+                    }
                 }
             } else {    // 文字方塊不必檢查
                 $('input#question_option').addClass('QValid').removeClass('QInvalid');
@@ -256,17 +308,17 @@
                     let typeChinese = TypeToChinese(questionType);
 
                     let originalHtml = $('#questionTbody').html();
-                    originalHtml += '<tr>\
+                    originalHtml += '<tr data-ID="NewItem">\
                         <th scope = "row">\
-                            <input class="form-check-input" type="checkbox" value="" onchange="deleteCheckboxCheck()" id="optionDelete' + ++count + '">\
+                            <input class="form-check-input" type="checkbox" value="" onchange="deleteCheckboxCheck()">\
                         </th>\
-                        <td>' + count + '</td>\
+                        <td>' + ++count + '</td>\
                         <td style="width:48%;">' + questionTitle + '</td>\
                         <td>' + typeChinese + '</td>\
                         <td>' + (questionRequired ? '<img src="../img/check-lg.svg" />' : '') + '</td>\
                         <td><a href="javascript:void(0)" onclick="QListModify(this)">編輯</a></td>\
                         <td class="questionModeHidden">' + questionMode + '</td>\
-                        <td class="questionModeHidden">' + (questionType == "text" ? "" : optionStr) + '</td>\
+                        <td class="questionOptionHidden">' + (questionType == "text" ? "" : optionStr) + '</td>\
                     </tr >';
                     $('#questionTbody').html(originalHtml);
                 }
@@ -275,6 +327,7 @@
 
                     $('#btnQuestionAdd').text('送出');
                     $('#btnQuestionReturn').css('visibility', 'hidden');
+
                     $target.removeClass('questionSelected');
 
                     // 修改target tr的內容
@@ -287,7 +340,7 @@
 
                 // 清空所有欄位
                 $('#questionMode > option:selected').prop('selected', false);
-                $('#questionMode > option[value=0]').prop('selected', true);
+                $('#questionMode > option[value=-1]').prop('selected', true);
                 $('input#question_title').val('');
                 $('select#questionType > option:selected').prop('selected', false);
                 $('select#questionType > option[value=text]').prop('selected', true);
@@ -301,7 +354,7 @@
         function btnQuestionReturnClick() {
             // 清空所有欄位
             $('#questionMode > option:selected').prop('selected', false);
-            $('#questionMode > option[value=0]').prop('selected', true);
+            $('#questionMode > option[value=-1]').prop('selected', true);
             $('input#question_title').val('');
             $('select#questionType > option:selected').prop('selected', false);
             $('select#questionType > option[value=text]').prop('selected', true);
@@ -353,6 +406,16 @@
                 return 1;
             else
                 return 2;
+        }
+
+        // Type數字轉英文
+        function TypeNumToEnglish(num) {
+            if (num == 0)
+                return 'text';
+            else if (num == 1)
+                return 'single';
+            else
+                return 'multi';
         }
 
         // 問題的編輯紐
@@ -412,16 +475,246 @@
             QDeleteModal.hide();
         }
 
+        // SubmitStatus
+        function NewOrModifyClick(type) {
+            SubmitStatus = type;
+        }
+
+        // 觀看細節
+        function AnswerDetail(ele) {
+            let url = '/Handler/DetailHandler.ashx?Action=AnswerDetail';
+            let voterID = $(ele).parent().parent().attr('data-voterid');
+            let questionnaireID = $(ele).parent().parent().attr('data-questionnaireid')
+
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {
+                    VoterID: voterID,
+                    QuestionnaireID: questionnaireID
+                },
+                success: function (result, textStatus) {
+                    AnswerTabContent = $('#voteTabContent').html();
+                    $('#voteTabContent').html(result);
+                },
+                statusCode: {
+                    400: function (result, textStatus) {
+                        console.log('400result: ' + result);
+                        console.log('400textStatus: ' + textstatus);
+                    }
+                }
+            });
+        }
+
+        // 觀看細節中的返回紐
+        function AnswerDetailReturn() {
+            $('#voteTabContent').html(AnswerTabContent);
+        }
+
+        // 開始日change事件的function
+        function startDateChange() {
+            if ($('input#startDate').val() == '') {
+                ChangeInvalid($('input#startDate'));
+                $('input#startDate').siblings('.invalid-feedback').html('請輸入日期');
+            }
+            // 若現在時間大於輸入時間，new Date().toISOString().slice(0, 10)會是yyyy-MM-dd，同一天也會是false
+            //else if (new Date(new Date().toISOString().slice(0, 10)) > new Date($(this).val())) {
+            //    ChangeInvalid($(this));
+            //    $(this).siblings('.invalid-feedback').html('開始日不可小於今天');
+            //}
+            else {
+                ChangeValid($('input#startDate'));
+            }
+
+            endDateChange();
+        }
+
+        // 結束日change事件的function
+        function endDateChange() {
+            // 結束時間不可小於今天
+            //if (new Date(new Date().toISOString().slice(0, 10)).getTime() >= new Date($(this).val()).getTime()) {
+            //    ChangeInvalid($(this));
+            //    $(this).siblings('.invalid-feedback').html('結束日不可小於或等於今天');
+            //}
+            // 結束時間不可小於開始時間
+            if (new Date($('input#endDate').val()).getTime() <= new Date($('input#startDate').val()).getTime()) {
+                ChangeInvalid($('input#endDate'));
+                $('input#endDate').siblings('.invalid-feedback').html('結束日不可小於或等於開始日');
+            }
+            else {
+                ChangeValid($('input#endDate'));
+            }
+        }
+
+        // 建立列表上的所有問題的Object
+        function createQuestionObject() {
+            // 問題Object
+            let QuestionAry = new Array();
+            for (let item of $('#questionTbody > tr')) {
+                let qType = TypeToNumber($(item).find('td').eq(2).text());
+                let QuestionObj = {
+                    QuestionID: $(item).attr('data-ID'),
+                    QuestionTitle: $(item).find('td').eq(1).text(),
+                    QuestionType: qType,
+                    QuestionRequired: $(item).find('td').eq(3).find('img').length == 0 ? 1 : 0,
+                    QuestionNumber: Number($(item).find('td').eq(0).text()),
+                    FAQName: $(item).find('td').eq(5).text() == '-1' ? '' : FAQJSONObj[Number($(item).find('td').eq(5).text())].FAQName
+                }
+
+                // 選項Object
+                let OptionArray = new Array();
+                if (qType != 0) {
+                    let optionStrAry = $(item).find('td').eq(6).text().split(';');
+                    for (let i = 1; i <= optionStrAry.length; i++) {
+                        OptionArray.push({
+                            OptionContent: optionStrAry[i - 1].trim(),
+                            OptionNumber: i
+                        });
+                    }
+                }
+
+                QuestionObj.Options = OptionArray;
+                QuestionAry.push(QuestionObj);
+            }
+
+            return QuestionAry;
+        }
+
+        var isQuestionModeChange = false;
         $(function () {
+            // Modal變數
             QDeleteModal = new bootstrap.Modal(document.getElementById('QuestionDeleteCheckModal'), {
                 keyboard: false
             });
             CreateFailedModal = new bootstrap.Modal(document.getElementById('CreateFailedModal'), {
                 keyboard: false
             });
+            QuestionnaireModifyModal = new bootstrap.Modal(document.getElementById('QuestionnaireModifyCheckModal'), {
+                keyboard: false
+            });
+            QuestionModifyModal = new bootstrap.Modal(document.getElementById('QuestionModifyCheckModal'), {
+                keyboard: false
+            });
+
+            
+
+            // 答案和統計Tab不是Disabled,表示為修改模式
+            if (!$('#vote-tab').prop('disabled') && !$('#statistic-tab').prop('disabled')) {
+
+                $('#question-tab').click(function () {
+                    SubmitStatus = 'QuestionModify';
+                })
+
+                // 問卷頁的輸入欄change，Ajax存入後台Session
+                $('#questionnaireTabContent input, #questionnaireTabContent textarea').on('change', function () {
+                    let url = '/Handler/DetailHandler.ashx?QID=' + currentQuestionnaireID + '&Action=QuestionnaireModify';
+                    $.ajax({
+                        url: url,
+                        type: "POST",
+                        data: {
+                            QuestionnaireTitle: $('#questionnaireName').val(),
+                            Description: $('#description').val(),
+                            StartDate: $('#startDate').val(),
+                            EndDate: $('#endDate').val(),
+                            Active: $('#activeCheck').prop('checked') ? 0 : 1
+                        },
+                        success: function (result, textStatus) {
+                            console.log("Questionnaire Modify: " + result);
+                            $('#questionnaire-tab').html('<img src="../img/modified.svg">問卷');
+                        },
+                        statusCode: {
+                            400: function (result, textStatus) {
+                                console.log('400result: ' + result);
+                                console.log('400textStatus: ' + textStatus);
+                            }
+                        }
+                    });
+                })
+
+                // 問題頁的加入(變更)紐，Ajax存入後台Session
+                $("#btnQuestionAdd").on('click', function () {
+
+                    if ($('input#question_title').hasClass('QValid') && $('input#question_option').hasClass('QValid')) {
+                        let url = '/Handler/DetailHandler.ashx?QID=' + currentQuestionnaireID + '&Action=QuestionModify';
+
+                        $.ajax({
+                            url: url,
+                            type: "POST",
+                            data: {
+                                questionJSON: JSON.stringify(createQuestionObject())
+                            },
+                            success: function (result, textStatus) {
+                                console.log("Questionnaire Modify: " + result);
+                                $('#question-tab').html('<img src="../img/modified.svg">問題');
+                            },
+                            statusCode: {
+                                400: function (result, textStatus) {
+                                    console.log('400result: ' + result);
+                                    console.log('400textStatus: ' + textStatus);
+                                }
+                            }
+                        });
+                    }
+                })
+
+                // 問題頁的刪除紐，Ajax存入後台Session
+                $('#btnQuestionDelete').on('click', function () {
+                    let url = '/Handler/DetailHandler.ashx?QID=' + currentQuestionnaireID + '&Action=QuestionModify';
+
+                    $.ajax({
+                        url: url,
+                        type: "POST",
+                        data: {
+                            questionJSON: JSON.stringify(createQuestionObject())
+                        },
+                        success: function (result, textStatus) {
+                            console.log("Questionnaire Modify: " + result);
+                            $('#question-tab').html('<img src="../img/modified.svg">問題');
+                        },
+                        statusCode: {
+                            400: function (result, textStatus) {
+                                console.log('400result: ' + result);
+                                console.log('400textStatus: ' + textStatus);
+                            }
+                        }
+                    });
+                })
+            }
 
             // 刪除checkbox註冊事件
             $('#questionTabContent tbody input[type=checkbox]').on('change', deleteCheckboxCheck);
+
+            // 常用問題下拉選單事件
+            $('select#questionMode').on('change', function () {
+                isQuestionModeChange = true;
+                if ($(this).val() == '-1') {
+                    // 清空所有欄位
+                    $('input#question_title').val('');
+                    $('select#questionType > option:selected').prop('selected', false);
+                    $('select#questionType > option[value=text]').prop('selected', true);
+                    $('select#questionType').trigger('change');
+                    $('#requiredCheck').prop('checked', false);
+                    $('input#question_option').val('');
+                } else {
+                    // 從FAQJSONObj抓出資料填入
+                    let index = Number($(this).val());
+                    $('input#question_title').val(FAQJSONObj[index].QuestionTitle);
+                    $('select#questionType > option:selected').prop('selected', false);
+                    $('select#questionType > option[value=' + TypeNumToEnglish(FAQJSONObj[index].QuestionType) + ']').prop('selected', true);
+                    $('select#questionType').trigger('change');
+                    $('#requiredCheck').prop('checked', FAQJSONObj[index].QuestionRequired == 0 ? true : false);
+
+                    let optionStr = '';
+                    let count = 1;
+                    for (let item of FAQJSONObj[index].Options) {
+                        optionStr += item.OptionContent;
+                        if (count++ != FAQJSONObj[index].Options.length)
+                            optionStr += ' ; ';
+                    }
+                    $('input#question_option').val(optionStr);
+                }
+                isQuestionModeChange = false;
+            })
 
             // 問題類型檢查，文字方塊不需要填選項的欄位
             $('select#questionType').change(function () {
@@ -434,97 +727,97 @@
                 }
             }).trigger('change');
 
+            // 使用常用問題的情況下，有任何input變更就改回自訂
+            $('input#question_title, input#requiredCheck, select#questionType, input#question_option').change(function () {
+                if ($('select#questionMode option:selected').val() != '-1' && !isQuestionModeChange) {
+                    $('#questionMode > option:selected').prop('selected', false);
+                    $('#questionMode > option[value=-1]').prop('selected', true);
+                }
+            })
+
             // form submit event
             $('form').submit(function (event) {
+                let tbodyValidate = true;
 
-                $('input#startDate').on('change', function () {
-                    if ($(this).val() == '') {
-                        ChangeInvalid($(this));
-                        $(this).siblings('.invalid-feedback').html('請輸入日期');
-                    }
-                    // 若現在時間大於輸入時間，new Date().toISOString().slice(0, 10)會是yyyy-MM-dd，同一天也會是false
-                    else if (new Date(new Date().toISOString().slice(0, 10)) > new Date($(this).val())) {
-                        ChangeInvalid($(this));
-                        $(this).siblings('.invalid-feedback').html('開始日不可小於今天');
-                    }
-                    else {
-                        ChangeValid($(this));
-                    }
+                if (SubmitStatus == 'New' || SubmitStatus == 'QuestionnaireModify') {
+                    $('input#questionnaireName').on('keyup', function () {
+                        $(this).val($(this).val().trim());
+                        let result = validateNullWhiteSpace($(this).val());
 
-                    $('input#endDate').trigger('change');
-                }).trigger('change');
-
-                $('input#endDate').on('change', function () {
-
-                    // 結束時間不可小於今天
-                    if (new Date(new Date().toISOString().slice(0, 10)).getTime() >= new Date($(this).val()).getTime()) {
-                        ChangeInvalid($(this));
-                        $(this).siblings('.invalid-feedback').html('結束日不可小於或等於今天');
-                    }
-                    // 結束時間不可小於開始時間
-                    else if (new Date($(this).val()).getTime() <= new Date($('input#startDate').val()).getTime()) {
-                        ChangeInvalid($(this));
-                        $(this).siblings('.invalid-feedback').html('結束日不可小於或等於開始日');
-                    }
-                    else {
-                        ChangeValid($(this));
-                    }
-                }).trigger('change');
-
-                // 檢查問題列表
-                let tbodyValidate = checkQuestionTbody();
-
-                if (!$('input.myValidation').toArray().every(CheckHasValid) || !tbodyValidate) {
-                    if (!CheckHasValid($('#questionnaireName')) || !CheckHasValid($('#startDate')) || !CheckHasValid($('#endDate'))) {
-                        $('#validateMsg').css('visibility', 'visible');
-                    } else {
-                        $('#validateMsg').css('visibility', 'hidden');
-                    }
-                    event.preventDefault()
-                    event.stopPropagation()
-                } else {
-                    // 要傳輸到後台的Object
-                    let QuestionnaireObj = {
-                        QuestionnaireTitle: $('input#questionnaireName').val(),
-                        Description: $('#description').val(),
-                        StartDate: $('input#startDate').val(),
-                        EndDate: $('input#endDate').val(),
-                        Active: $('#activeCheck').prop('checked') ? 0 : 1
-                    }
-
-                    // 問題Object
-                    let QuestionAry = new Array();
-                    for (let item of $('#questionTbody > tr')) {
-                        let qType = TypeToNumber($(item).find('td').eq(2).text());
-                        let QuestionObj = {
-                            QuestionTitle: $(item).find('td').eq(1).text(),
-                            QuestionType: qType,
-                            QuestionRequired: $(item).find('td').eq(3).find('img').length == 0 ? 1 : 0,
-                            QuestionNumber: Number($(item).find('td').eq(0).text())
+                        if (!result.isValid) {
+                            $(this).siblings('.invalid-feedback').html(result.msg);
+                            ChangeInvalid($(this));
+                        } else {
+                            ChangeValid($(this));
                         }
+                    }).trigger('keyup');
 
-                        // 選項Object
-                        let OptionArray = new Array();
-                        if (qType != 0) {
-                            let optionStrAry = $(item).find('td').eq(6).text().split(';');
-                            for (let i = 1; i <= optionStrAry.length; i++) {
-                                OptionArray.push({
-                                    OptionContent: optionStrAry[i - 1].trim(),
-                                    OptionNumber: i
-                                });
-                            }
-                        }
+                    $('input#startDate').on('change', startDateChange);
+                    startDateChange();
 
-                        QuestionObj.Options = OptionArray;
-                        QuestionAry.push(QuestionObj);
-                    }
-
-                    QuestionnaireObj.Questions = QuestionAry;
-
-                    // 放進HiddenField
-                    $('input[id$=HFNewQuestionnaire]').val(JSON.stringify(QuestionnaireObj));
-                    console.log(JSON.stringify(QuestionnaireObj))
+                    $('input#endDate').on('change', endDateChange);
+                    endDateChange();
                 }
+
+                
+                if (SubmitStatus == 'New' || SubmitStatus == 'QuestionModify') {
+                    tbodyValidate = checkQuestionTbody();    // 檢查問題列表
+                }
+                
+                if (SubmitStatus == 'New') {
+                    if (!$('input.myValidation').toArray().every(CheckHasValid) || !tbodyValidate) {
+                        if (!CheckHasValid($('#questionnaireName')) || !CheckHasValid($('#startDate')) || !CheckHasValid($('#endDate'))) {
+                            $('#validateMsg').css('visibility', 'visible');
+                        } else {
+                            $('#validateMsg').css('visibility', 'hidden');
+                        }
+                        event.preventDefault();
+                        event.stopPropagation();
+                    } else {
+                        // 要傳輸到後台的Object
+                        let QuestionnaireObj = {
+                            QuestionnaireTitle: $('input#questionnaireName').val(),
+                            Description: $('#description').val(),
+                            StartDate: $('input#startDate').val(),
+                            EndDate: $('input#endDate').val(),
+                            Active: $('#activeCheck').prop('checked') ? 0 : 1
+                        }
+
+                        QuestionnaireObj.Questions = createQuestionObject();
+
+                        // 放進HiddenField
+                        $('input[id$=HFNewQuestionnaire]').val(JSON.stringify(QuestionnaireObj));
+                        console.log(JSON.stringify(QuestionnaireObj))
+                    }
+                }
+                else if (SubmitStatus == 'QuestionnaireModify') {
+                    if (!CheckHasValid($('#questionnaireName')) || !CheckHasValid($('#startDate')) || !CheckHasValid($('#endDate'))) {
+                        console.log('Questionnaire Modify Not Passed.')
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
+                    else {
+                        if (!AllowSubmit) {
+                            QuestionnaireModifyModal.toggle();
+                            event.preventDefault();
+                            event.stopPropagation();
+                        }
+
+                    }
+                }
+                else if (SubmitStatus == 'QuestionModify') {
+                    if (!tbodyValidate) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        console.log('Question Modify Not Passed.')
+                    }
+                }
+                else {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }
+
+                
             })
 
         })
@@ -556,12 +849,12 @@
                     <li class="nav-item" role="presentation">
                         <button class="nav-link <%= questionnaireTabStatus %>" id="questionnaire-tab" data-bs-toggle="tab"
                             data-bs-target="#questionnaireTabContent" type="button" role="tab">
-                            問卷</button>
+                            <%= questionnaireTabModifiedSvg %>問卷</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link <%= questionTabStatus %>" id="question-tab" data-bs-toggle="tab"
                             data-bs-target="#questionTabContent" type="button" role="tab">
-                            問題</button>
+                            <%= questionTabModifiedSvg %>問題</button>
                     </li>
                     <li class="nav-item" role="presentation">
                         <button class="nav-link <%= answerTabStatus %>" id="vote-tab" data-bs-toggle="tab" data-bs-target="#voteTabContent"
@@ -578,7 +871,7 @@
                     <div class="tab-pane fade <%= questionnaireTabContentStatus %>" id="questionnaireTabContent" role="tabpanel">
                         <div class="mb-3">
                             <label for="questionnaireName" class="form-label">問卷名稱</label>
-                            <asp:TextBox ID="questionnaireName" runat="server" CssClass="form-control myValidation validateNullWhiteSpace"></asp:TextBox>
+                            <asp:TextBox ID="questionnaireName" runat="server" CssClass="form-control myValidation"></asp:TextBox>
                             <div class="invalid-feedback">
                             </div>
                             <div class="valid-feedback">
@@ -615,27 +908,9 @@
 
                         <div class="mb-3 btn-div">
                             <asp:Button ID="btnQuestionnaireCancel" runat="server" Text="取消" CssClass="btn btn-secondary" />
-                            <asp:Button ID="btnQuestionnaireModify" runat="server" Text="修改" CssClass="btn btn-primary" />
-                            <%--<button type="button" class="btn btn-secondary">取消</button>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#QuestionnaireModifyCheckModal">修改</button>--%>
-                        </div>
-
-                        <%--問卷修改確認Modal--%>
-                        <div class="modal fade" id="QuestionnaireModifyCheckModal" data-bs-keyboard="false" tabindex="-1"
-                            aria-hidden="true">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-body">
-                                        <div class="alert alert-warning" role="alert">
-                                            即將修改問卷內容，確定執行嗎?
-                                        </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                                        <button type="button" class="btn btn-primary">確定</button>
-                                    </div>
-                                </div>
-                            </div>
+                            <asp:Button ID="btnQuestionnaireValidate" runat="server" Text="修改" CssClass="btn btn-primary" OnClientClick="NewOrModifyClick('QuestionnaireModify')" />
+                            <%--<button type="button" class="btn btn-secondary">取消</button>--%>
+                            <%--<button type="button" class="btn btn-primary" onclick="NewOrModifyClick('QuestionnaireModify')">修改</button>--%>
                         </div>
                     </div>
                     <div class="tab-pane fade <%= questionTabContentStatus %> " id="questionTabContent" role="tabpanel">
@@ -643,10 +918,10 @@
                             <label class="col-sm-1 col-form-label">種類</label>
                             <div class="col-sm-3">
                                 <select class="form-select col-sm-10" id="questionMode">
-                                    <option value="0" selected>自訂</option>
-                                    <option value="1">One</option>
-                                    <option value="2">Two</option>
-                                    <option value="3">Three</option>
+                                    <option value="-1" selected>自訂</option>
+
+                                    <asp:Literal ID="ltlFAQdropdown" runat="server"></asp:Literal>
+
                                 </select>
                             </div>
                         </div>
@@ -718,18 +993,9 @@
                                     </tr>
                                 </thead>
                                 <tbody id="questionTbody">
-                                    <%--
-                                    <tr>
-                                        <th scope="row">
-                                            <input class="form-check-input" type="checkbox" value=""
-                                                id="optionDelete2"></th>
-                                        <td>2</td>
-                                        <td>你對下列哪個程式語言有興趣?</td>
-                                        <td>複選</td>
-                                        <td>
-                                            <img src="../img/check-lg.svg" /></td>
-                                        <td><a href="#">編輯</a></td>
-                                    </tr>--%>
+
+                                    <asp:Literal ID="ltlQuestionTbody" runat="server"></asp:Literal>
+
                                 </tbody>
                                 <tbody>
                                     <tr class="invalid-tr">
@@ -741,18 +1007,24 @@
                             </table>
                         </div>
                         <div class="mb-3 btn-div-question">
-                            <asp:Button ID="btnNewQuestionnaire" runat="server" Text="建立" CssClass="btn btn-success" OnClick="btnNewQuestionnaire_Click" />
+                            <asp:Button ID="btnNewQuestionnaire" runat="server" Text="建立" CssClass="btn btn-success" OnClick="btnNewQuestionnaire_Click" OnClientClick="NewOrModifyClick('New')" />
                             <span id="validateMsg">請確認問卷分頁的輸入欄！</span>
 
                             <asp:Button ID="btnQuestionCancel" runat="server" Text="取消" CssClass="btn btn-secondary" />
-                            <asp:Button ID="btnQuestionModify" runat="server" Text="修改" CssClass="btn btn-primary" />
+                            <asp:Button ID="btnQuestionModify" runat="server" Text="修改" CssClass="btn btn-primary" OnClientClick="NewOrModifyClick('QuestionModify')" />
                             <%--<button type="button" class="btn btn-secondary">取消</button>
                             <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#QuestionModifyCheckModal">修改</button>--%>
                         </div>
                     </div>
                     <div class="tab-pane fade <%= answerTabContentStatus %>" id="voteTabContent" role="tabpanel">
                         <div class="mb-3">
-                            <button type="button" class="btn btn-outline-primary">匯出</button>
+                            <a role="button" class="btn btn-outline-info" href="/Handler/DetailHandler.ashx?Action=AnswerDownload&QID=<%= QuestionnaireID %>">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-file-earmark-arrow-down" viewBox="0 0 16 16">
+                                    <path d="M8.5 6.5a.5.5 0 0 0-1 0v3.793L6.354 9.146a.5.5 0 1 0-.708.708l2 2a.5.5 0 0 0 .708 0l2-2a.5.5 0 0 0-.708-.708L8.5 10.293V6.5z" />
+                                    <path d="M14 14V4.5L9.5 0H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h8a2 2 0 0 0 2-2zM9.5 3A1.5 1.5 0 0 0 11 4.5h2V14a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h5.5v2z" />
+                                </svg>
+                                匯出
+                            </a>
                         </div>
                         <div class="mb-3 table_container">
                             <table class="table table-striped col-7">
@@ -765,203 +1037,43 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr>
-                                        <th scope="row">4</th>
-                                        <td>Robert</td>
-                                        <td>2021-11-1 09:30</td>
-                                        <td><a href="#">前往</a></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">3</th>
-                                        <td>Robert</td>
-                                        <td>2021-11-1 09:30</td>
-                                        <td><a href="#">前往</a></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">2</th>
-                                        <td>Robert</td>
-                                        <td>2021-11-1 09:30</td>
-                                        <td><a href="#">前往</a></td>
-                                    </tr>
-                                    <tr>
-                                        <th scope="row">1</th>
-                                        <td>Robert</td>
-                                        <td>2021-11-1 09:30</td>
-                                        <td><a href="#">前往</a></td>
-                                    </tr>
+
+                                    <asp:Literal ID="ltlAnswerTbody" runat="server"></asp:Literal>
+
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mb-3 row">
-                            <div class="pagena">pagination</div>
+                        <div class="offset-md-5 mb-3">
+                            <uc1:ucPager runat="server" ID="ucPager" Url="Detail.aspx" AllowPageCount="5" />
                         </div>
-
-                        <!-- 觀看細節 -->
-                        <!-- <div class="mb-3 row">
-                        <label for="answerName" class="col-auto col-form-label">姓名：</label>
-                        <div class="col-sm-4">
-                            <input type="text" readonly class="form-control-plaintext" id="answerName" value="Monica">
-                        </div>
-                        <label for="answerPhone" class="col-auto col-form-label"
-                            style="margin-left: calc(var(--bs-gutter-x) * .25);">手機：</label>
-                        <div class="col-auto">
-                            <input type="text" readonly class="form-control-plaintext" id="answerPhone"
-                                value="0955777889">
-                        </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <label for="answerEmail" class="col-auto col-form-label">Email：</label>
-                        <div class="col-sm-4">
-                            <input type="text" readonly class="form-control-plaintext" id="answerEmail"
-                                value="Monica151225@gmail.com">
-                        </div>
-                        <label for="answerAge" class="col-auto col-form-label">年齡：</label>
-                        <div class="col-auto">
-                            <input type="text" readonly class="form-control-plaintext" id="answerAge" value="22">
-                        </div>
-                    </div>
-                    <div class="mb-3 row">
-                        <div class="offset-6 col-auto">填寫時間：2021-11-02 21:25</div>
-                    </div>
-
-                    <div class="mt-4 QContainer multi required" id="ID5dff9795-09a3-4a59-8746-6660f6e67c3a">
-                        <h5>1. 你玩過什麼線上遊戲? (複選)<span class="required_mark">*</span></h5>
-                        <div class="option_div">
-                            <div class="form-check"><input class="form-check-input" checked disabled type="checkbox" value=""
-                                    id="ID14655798-5fab-4092-a56d-8a339a954b76"><label class="form-check-label"
-                                    for="ID14655798-5fab-4092-a56d-8a339a954b76">LOL</label></div>
-                            <div class="form-check"><input class="form-check-input" disabled type="checkbox" value=""
-                                    id="IDe7ca9da4-0fa4-4402-8a10-ba5bc2b5bbd4"><label class="form-check-label"
-                                    for="IDe7ca9da4-0fa4-4402-8a10-ba5bc2b5bbd4">薩爾達傳說</label></div>
-                            <div class="form-check"><input class="form-check-input" disabled type="checkbox" value=""
-                                    id="IDbd1d9b93-6a70-4eb8-853b-f49ecac23733"><label class="form-check-label"
-                                    for="IDbd1d9b93-6a70-4eb8-853b-f49ecac23733">Minecraft</label></div>
-                            <div class="form-check"><input class="form-check-input" checked disabled type="checkbox" value=""
-                                    id="IDcd528b5a-85a5-4a6b-9919-a2496599caa5"><label class="form-check-label"
-                                    for="IDcd528b5a-85a5-4a6b-9919-a2496599caa5">GTA</label></div>
-                            <div class="form-check"><input class="form-check-input" checked disabled type="checkbox" value=""
-                                    id="IDb266b8ef-d795-4d21-ab7a-03f8ff579626"><label class="form-check-label"
-                                    for="IDb266b8ef-d795-4d21-ab7a-03f8ff579626">大亂鬥</label></div>
-                            <div class="form-check"><input class="form-check-input" disabled type="checkbox" value=""
-                                    id="ID5322f39f-3834-4fc0-851c-c6e59c2e4d63"><label class="form-check-label"
-                                    for="ID5322f39f-3834-4fc0-851c-c6e59c2e4d63">楓之谷</label></div>
-                        </div>
-                    </div>
-
-                    <div class="mt-4 QContainer text_input" id="ID3fd8e3fc-b72d-4b29-954d-2ed7a611cfe3">
-                        <h5>2. 你玩遊戲最大的理由是?</h5>
-                        <div class="option_div">
-                            <input type="text" readonly class="form-control-plaintext" id="ID3fd8e3f" value="開心啦!">
-                        </div>
-                    </div>
-
-                    <div class="mt-4 QContainer single required"
-                        id="ID81ecc6d2-42c3-450e-b63c-6587b4bf9fb3">
-                        <h5>3. 你到目前為止大約看了幾年的動漫?<span class="required_mark">*</span></h5>
-                        <div class="option_div">
-                            <div class="form-check"><input class="form-check-input" disabled type="radio"
-                                    name="name81ecc6d2-42c3-450e-b63c-6587b4bf9fb3"
-                                    id="ID879deec3-b95c-4dac-bb56-1e1ff627adf1"><label class="form-check-label"
-                                    for="ID879deec3-b95c-4dac-bb56-1e1ff627adf1">0 年</label></div>
-                            <div class="form-check"><input class="form-check-input" checked disabled type="radio"
-                                    name="name81ecc6d2-42c3-450e-b63c-6587b4bf9fb3"
-                                    id="IDbd181019-e37e-4eb8-9307-db1c49fc90d8"><label class="form-check-label"
-                                    for="IDbd181019-e37e-4eb8-9307-db1c49fc90d8">0 ~ 1 年</label></div>
-                            <div class="form-check"><input class="form-check-input" disabled type="radio"
-                                    name="name81ecc6d2-42c3-450e-b63c-6587b4bf9fb3"
-                                    id="ID528d05d5-f7eb-49f8-a415-9183606accdd"><label class="form-check-label"
-                                    for="ID528d05d5-f7eb-49f8-a415-9183606accdd">1 ~ 3 年</label></div>
-                            <div class="form-check"><input class="form-check-input" disabled type="radio"
-                                    name="name81ecc6d2-42c3-450e-b63c-6587b4bf9fb3"
-                                    id="ID1164355d-b3e8-47f0-ae76-c314e77de73b"><label class="form-check-label"
-                                    for="ID1164355d-b3e8-47f0-ae76-c314e77de73b">3 ~ 5 年</label></div>
-                            <div class="form-check"><input class="form-check-input" disabled type="radio"
-                                    name="name81ecc6d2-42c3-450e-b63c-6587b4bf9fb3"
-                                    id="ID3496d767-ac58-492a-bec5-0c3f26aacf18"><label class="form-check-label"
-                                    for="ID3496d767-ac58-492a-bec5-0c3f26aacf18">5 年以上</label></div>
-                        </div>
-                    </div>
-
-                    <div class="mt-5">
-                        <button type="button" class="btn btn-secondary">返回</button>
-                    </div> -->
                     </div>
                     <div class="tab-pane fade <%= statisticTabContentStatus %>" id="statisticTabContent" role="tabpanel">
-                        <div class="mt-4" id="a487b572-d71d-4498-b0d2-2b01550662fc">
-                            <h5>1. 你最喜歡以下哪種程式語言?</h5>
-                            <div class="option_div">
-                                <div class="myOption">
-                                    <div class="option_content">
-                                        C#
-                                    </div>
-                                    <div class="row">
-                                        <div class="progress col-md-4">
-                                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 25%"></div>
-                                        </div>
-                                        <div class="col-md-4 progress_text">
-                                            25% (224)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="myOption">
-                                    <div class="option_content">
-                                        Java
-                                    </div>
-                                    <div class="row">
-                                        <div class="progress col-md-4">
-                                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 20.2%"></div>
-                                        </div>
-                                        <div class="col-md-4 progress_text">
-                                            20.2% (205)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="myOption">
-                                    <div class="option_content">
-                                        JavaScript
-                                    </div>
-                                    <div class="row">
-                                        <div class="progress col-md-4">
-                                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 42.5%"></div>
-                                        </div>
-                                        <div class="col-md-4 progress_text">
-                                            42.5% (486)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="myOption">
-                                    <div class="option_content">
-                                        Python
-                                    </div>
-                                    <div class="row">
-                                        <div class="progress col-md-4">
-                                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 8.7%"></div>
-                                        </div>
-                                        <div class="col-md-4 progress_text">
-                                            8.7% (51)
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="myOption">
-                                    <div class="option_content">
-                                        SQL
-                                    </div>
-                                    <div class="row">
-                                        <div class="progress col-md-4">
-                                            <div class="progress-bar progress-bar-striped" role="progressbar" style="width: 11.6%"></div>
-                                        </div>
-                                        <div class="col-md-4 progress_text">
-                                            11.6% (72)
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+
+                        <asp:Literal ID="ltlStatisticPane" runat="server"></asp:Literal>
+
                     </div>
                 </div>
             </div>
         </div>
 
+        <%--問卷修改確認Modal--%>
+        <div class="modal fade" id="QuestionnaireModifyCheckModal" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-warning" role="alert">
+                            即將修改問卷內容，確定執行嗎?
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <asp:Button ID="btnQuestionnaireModify" runat="server" CssClass="btn btn-primary" Text="確定" OnClientClick="AllowSubmit=true;"/>
+                        <%--<button type="button" class="btn btn-primary">確定</button>--%>
+                    </div>
+                </div>
+            </div>
+        </div>
         <!-- 問題刪除確認Modal -->
         <div class="modal fade" id="QuestionDeleteCheckModal" data-bs-keyboard="false" tabindex="-1"
             aria-hidden="true">
@@ -970,12 +1082,11 @@
                     <div class="modal-body">
                         <div class="alert alert-danger" role="alert">
                             確定刪除問題嗎?
-                                            <%--問題以及所有相關回答將會刪除，無法回復，確定執行嗎?--%>
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary" onclick="btnQuestionDeleteConfirm()">確定</button>
+                        <button type="button" class="btn btn-primary" onclick="btnQuestionDeleteConfirm()" id="btnQuestionDelete">確定</button>
                     </div>
                 </div>
             </div>

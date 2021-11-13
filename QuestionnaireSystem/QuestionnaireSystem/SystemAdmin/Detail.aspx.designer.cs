@@ -96,13 +96,22 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.WebControls.Button btnQuestionnaireCancel;
 
         /// <summary>
-        /// btnQuestionnaireModify control.
+        /// btnQuestionnaireValidate control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnQuestionnaireModify;
+        protected global::System.Web.UI.WebControls.Button btnQuestionnaireValidate;
+
+        /// <summary>
+        /// ltlFAQdropdown control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlFAQdropdown;
 
         /// <summary>
         /// question_title control.
@@ -121,6 +130,15 @@ namespace QuestionnaireSystem.SystemAdmin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.TextBox question_option;
+
+        /// <summary>
+        /// ltlQuestionTbody control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlQuestionTbody;
 
         /// <summary>
         /// btnNewQuestionnaire control.
@@ -148,5 +166,41 @@ namespace QuestionnaireSystem.SystemAdmin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnQuestionModify;
+
+        /// <summary>
+        /// ltlAnswerTbody control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlAnswerTbody;
+
+        /// <summary>
+        /// ucPager control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::QuestionnaireSystem.UserControl.ucPager ucPager;
+
+        /// <summary>
+        /// ltlStatisticPane control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlStatisticPane;
+
+        /// <summary>
+        /// btnQuestionnaireModify control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnQuestionnaireModify;
     }
 }

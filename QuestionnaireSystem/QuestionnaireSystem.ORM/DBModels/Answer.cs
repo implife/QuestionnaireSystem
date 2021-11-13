@@ -19,7 +19,6 @@ namespace QuestionnaireSystem.ORM.DBModels
 
         public string TextboxContent { get; set; }
 
-        [Column(TypeName = "date")]
         public DateTime Timestamp { get; set; }
 
         public virtual Option Option { get; set; }

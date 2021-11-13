@@ -9,6 +9,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionnaireSystem.DBSourc
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionnaireSystem.ORM", "QuestionnaireSystem.ORM\QuestionnaireSystem.ORM.csproj", "{DFD7DA34-F207-45BA-A35A-591A88DB5FF2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "QuestionnaireSystem.Auth", "QuestionnaireSystem.Auth\QuestionnaireSystem.Auth.csproj", "{E1C65506-3E94-4DA6-9F2E-CFCA4F74AA70}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{DFD7DA34-F207-45BA-A35A-591A88DB5FF2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DFD7DA34-F207-45BA-A35A-591A88DB5FF2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DFD7DA34-F207-45BA-A35A-591A88DB5FF2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E1C65506-3E94-4DA6-9F2E-CFCA4F74AA70}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E1C65506-3E94-4DA6-9F2E-CFCA4F74AA70}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E1C65506-3E94-4DA6-9F2E-CFCA4F74AA70}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E1C65506-3E94-4DA6-9F2E-CFCA4F74AA70}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

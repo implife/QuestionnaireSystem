@@ -18,7 +18,7 @@ namespace QuestionnaireSystem.ORM.DBModels
 
         public Guid QuestionID { get; set; }
 
-        public Guid QuestionnaireID { get; set; }
+        public Guid? QuestionnaireID { get; set; }
 
         [Required]
         public string Title { get; set; }
@@ -28,6 +28,8 @@ namespace QuestionnaireSystem.ORM.DBModels
         public int Required { get; set; }
 
         public int Number { get; set; }
+
+        public string FAQName { get; set; }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2227:CollectionPropertiesShouldBeReadOnly")]
         public virtual ICollection<Answer> Answers { get; set; }

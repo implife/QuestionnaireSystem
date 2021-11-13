@@ -34,6 +34,8 @@ namespace QuestionnaireSystem.UserControl
             {
                 if (isSearch)
                     this.HLPre.Attributes.Add("href", this.Url + $"?Action=Search&Page={CurrentPage - 1}");
+                else if(this.Url.IndexOf('?') != -1)
+                    this.HLPre.Attributes.Add("href", this.Url + $"&Page={CurrentPage - 1}");
                 else
                     this.HLPre.Attributes.Add("href", this.Url + $"?Page={CurrentPage - 1}");
             }
@@ -48,6 +50,8 @@ namespace QuestionnaireSystem.UserControl
             {
                 if (isSearch)
                     this.HLNext.Attributes.Add("href", this.Url + $"?Action=Search&Page={CurrentPage + 1}");
+                else if (this.Url.IndexOf('?') != -1)
+                    this.HLNext.Attributes.Add("href", this.Url + $"&Page={CurrentPage + 1}");
                 else
                     this.HLNext.Attributes.Add("href", this.Url + $"?Page={CurrentPage + 1}");
             }
@@ -95,6 +99,8 @@ namespace QuestionnaireSystem.UserControl
                 {
                     if (isSearch)
                         this.ltlPages.Text += $"<li class='page-item'><a class='page-link' href='{this.Url}?Action=Search&Page={i}'>{i}</a></li>";
+                    else if (this.Url.IndexOf('?') != -1)
+                        this.ltlPages.Text += $"<li class='page-item'><a class='page-link' href='{this.Url}&Page={i}'>{i}</a></li>";
                     else
                         this.ltlPages.Text += $"<li class='page-item'><a class='page-link' href='{this.Url}?Page={i}'>{i}</a></li>";
                 }

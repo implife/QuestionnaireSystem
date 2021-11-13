@@ -18,7 +18,7 @@ namespace QuestionnaireSystem.DBSource
                     return context.Questionnaires.Select(obj => obj).ToList();
                 }
             }
-            catch (Exception e)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -58,7 +58,7 @@ namespace QuestionnaireSystem.DBSource
                     return result;
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -73,7 +73,7 @@ namespace QuestionnaireSystem.DBSource
                     return context.Questionnaires.Where(item => item.QuestionnaireID.Equals(QuestionnaireGuid)).FirstOrDefault();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -88,7 +88,7 @@ namespace QuestionnaireSystem.DBSource
                     return context.Questionnaires.Where(item => item.QuestionnaireID.Equals(qu.QuestionnaireID)).FirstOrDefault();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -100,10 +100,10 @@ namespace QuestionnaireSystem.DBSource
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Questions.Where(item => item.QuestionnaireID.Equals(QuestionnaireGuid)).OrderBy(item => item.Number).ToList();
+                    return context.Questions.Where(item => item.QuestionnaireID == QuestionnaireGuid).OrderBy(item => item.Number).ToList();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -119,7 +119,7 @@ namespace QuestionnaireSystem.DBSource
                     return context.Questions.Where(item => item.QuestionID.Equals(QuestionGuid)).FirstOrDefault();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -139,7 +139,7 @@ namespace QuestionnaireSystem.DBSource
                     return context.Options.Where(item => item.QuestionID.Equals(QuestionGuid)).OrderBy(item => item.Number).ToList();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -154,7 +154,7 @@ namespace QuestionnaireSystem.DBSource
                     return context.Options.Where(item => item.OptionID.Equals(OptionGuid)).FirstOrDefault();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -196,13 +196,13 @@ namespace QuestionnaireSystem.DBSource
                     if (question.Required == 0)
                         throw new Exception("Question is required but there's no option.");
 
-                    context.Answers.Add(new Answer()
-                    {
-                        VoterID = voter.VoterID,
-                        QuestionID = question.QuestionID,
-                        OptionID = null,
-                        Timestamp = DateTime.Now
-                    });
+                    //context.Answers.Add(new Answer()
+                    //{
+                    //    VoterID = voter.VoterID,
+                    //    QuestionID = question.QuestionID,
+                    //    OptionID = null,
+                    //    Timestamp = DateTime.Now
+                    //});
                 }
                 else
                 {
@@ -275,7 +275,11 @@ namespace QuestionnaireSystem.DBSource
                             AddNewAnswer(voter, Guid.Parse(item.QuestionID), null, item.Answer[0], context);
                         else
                         {
-                            Guid[] guidOptions = item.Answer.Select(obj => Guid.Parse(obj)).ToArray();
+                            Guid[] guidOptions;
+                            if (item.Answer[0] == "")
+                                guidOptions = new Guid[0];
+                            else
+                                guidOptions = item.Answer.Select(obj => Guid.Parse(obj)).ToArray();
                             AddNewAnswer(voter, Guid.Parse(item.QuestionID), guidOptions, "", context);
                         }
                     }
@@ -303,7 +307,7 @@ namespace QuestionnaireSystem.DBSource
                         .Select(obj => obj.VoterID).Distinct().Count();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return -1;
             }
@@ -327,7 +331,7 @@ namespace QuestionnaireSystem.DBSource
                         }).ToList();
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 return null;
             }
@@ -339,7 +343,7 @@ namespace QuestionnaireSystem.DBSource
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    // 檢查未開放的問卷
+                    // 檢查未開始的問卷
                     List<Questionnaire> listNotStart = context.Questionnaires.Where(item => item.Status == 0).ToList();
                     foreach (Questionnaire item in listNotStart)
                     {
@@ -373,7 +377,7 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
-        public static bool CreateNewQuestionnaire(QuestionnaireClass questionnaire )
+        public static bool CreateNewQuestionnaire(QuestionnaireClass questionnaire)
         {
             try
             {
@@ -393,8 +397,14 @@ namespace QuestionnaireSystem.DBSource
                     int status;
                     if(questionnaire.Active == 0)
                     {
-                        if (startDate == DateTime.Now.Date)
-                            status = 1;
+                        if (startDate <= DateTime.Now.Date)
+                        {
+                            if (endDate == null || endDate > DateTime.Now.Date)
+                                status = 1;
+                            else
+                                status = 2;
+                            
+                        }
                         else
                             status = 0;
                     }
@@ -426,7 +436,8 @@ namespace QuestionnaireSystem.DBSource
                             Title = item.QuestionTitle,
                             Type = item.QuestionType,
                             Required = item.QuestionRequired,
-                            Number = item.QuestionNumber
+                            Number = item.QuestionNumber,
+                            FAQName = item.FAQName == "" ? null : item.FAQName
                         });
 
                         foreach (OptionClass opt in item.Options)
@@ -441,6 +452,167 @@ namespace QuestionnaireSystem.DBSource
                             });
                         }
                     }
+                    context.SaveChanges();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public static QuestionClass[] GetFAQList()
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    List<Question> FAQs = context.Questions.Where(obj => obj.QuestionnaireID == null && obj.FAQName != null).ToList();
+                    QuestionClass[] result = new QuestionClass[FAQs.Count];
+
+                    int i = 0;
+                    foreach (Question item in FAQs)
+                    {
+                        QuestionClass temp = new QuestionClass()
+                        {
+                            QuestionTitle = item.Title,
+                            QuestionType = item.Type,
+                            QuestionRequired = item.Required,
+                            QuestionNumber = -1,
+                            FAQName = item.FAQName
+                        };
+                        temp.Options = GetOptionsByQuestionID(item.QuestionID).Select(obj => new OptionClass()
+                        {
+                            OptionContent = obj.OptionContent,
+                            OptionNumber = obj.Number
+                        }).ToArray();
+                        result[i++] = temp;
+                    }
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public static List<Voter> GetAllVotersByQuestionnaire(Questionnaire questionnaire)
+        {
+            List<Question> questions = GetQuestionsByQuestionnaireID(questionnaire.QuestionnaireID);
+            List<Voter> voters = new List<Voter>();
+
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    foreach (Question item in questions)
+                    {
+                        var temp = context.Answers.Where(obj => obj.QuestionID == item.QuestionID)
+                            .Select(obj => obj.Voter).Distinct();
+                        voters = voters.Concat(temp).Distinct().ToList();
+                    }
+                    return voters;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// 輸入Voter和Question，回傳相對應的答案List(可能是多選)，若不傳入Question，則回傳該投票者的所有回答(也只會有同一張問卷的)
+        /// </summary>
+        /// <param name="voter"></param>
+        /// <param name="question">若為null，責尋找同張問卷的所有答案</param>
+        /// <returns></returns>
+        public static List<Answer> GetAnswerByVoterAndQuestion(Voter voter, Question question = null)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    if (question == null)
+                    {
+                        return context.Answers.Where(obj => obj.Voter.VoterID == voter.VoterID).ToList();
+                    }
+                    else
+                    {
+                        return context.Answers.Where(obj => obj.Voter.VoterID == voter.VoterID 
+                            && obj.Question.QuestionID == question.QuestionID).ToList();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public static Voter GetVoterByVoterID(Guid voterGuid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    return context.Voters.Where(item => item.VoterID.Equals(voterGuid)).FirstOrDefault();
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        public static DateTime? GetTimeStampByVoter(Voter voter)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    Answer ans = context.Answers.Where(obj => obj.Voter.VoterID == voter.VoterID).FirstOrDefault();
+                    if (ans == null)
+                        return null;
+                    else
+                        return ans.Timestamp;
+                }
+            }
+            catch (Exception ex)
+            {
+                return null;
+            }
+        }
+
+        private static bool UpdateQuestionnaire(Questionnaire modifiedQuestionnaire)
+        {
+            if (GetQuestionnaireByID(modifiedQuestionnaire.QuestionnaireID) == null)
+                throw new Exception("Questionnaire ID Error.");
+            if(modifiedQuestionnaire.Status < 0 || modifiedQuestionnaire.Status > 3)
+                throw new Exception("Questionnaire status is not valid.");
+            if(modifiedQuestionnaire.EndDate != null)
+            {
+                if (modifiedQuestionnaire.EndDate <= modifiedQuestionnaire.StartDate)
+                    throw new Exception("End Date is less than or equal to Start Date.");
+            }
+            if (modifiedQuestionnaire.Title == "")
+                throw new Exception("Title can not be empty.");
+
+
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    Questionnaire target = context.Questionnaires.Where(obj => obj.QuestionnaireID == modifiedQuestionnaire.QuestionnaireID)
+                        .FirstOrDefault();
+                    target.Title = modifiedQuestionnaire.Title;
+                    target.Discription = modifiedQuestionnaire.Discription;
+                    target.StartDate = modifiedQuestionnaire.StartDate;
+                    target.EndDate = modifiedQuestionnaire.EndDate;
+                    target.Status = modifiedQuestionnaire.Status;
+
                     context.SaveChanges();
                     return true;
                 }
