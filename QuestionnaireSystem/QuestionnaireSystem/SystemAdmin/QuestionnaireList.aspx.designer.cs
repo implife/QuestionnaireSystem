@@ -24,6 +24,15 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// HFDeleteID control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HFDeleteID;
+
+        /// <summary>
         /// input_search_title control.
         /// </summary>
         /// <remarks>
@@ -94,5 +103,23 @@ namespace QuestionnaireSystem.SystemAdmin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::QuestionnaireSystem.UserControl.ucPager ucPager;
+
+        /// <summary>
+        /// btnQuestionnaireDelete control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnQuestionnaireDelete;
+
+        /// <summary>
+        /// ltlFailedMsg control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlFailedMsg;
     }
 }

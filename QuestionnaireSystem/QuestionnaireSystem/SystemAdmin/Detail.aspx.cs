@@ -24,18 +24,21 @@ namespace QuestionnaireSystem.SystemAdmin
         public string QuestionnaireID { get; set; } = "";
         public string questionnaireTabModifiedSvg { get; set; } = "";
         public string questionTabModifiedSvg { get; set; } = "";
-
+        public string optionExplanationStyle { get; set; } = "style='display:none;'";
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            this.btnQuestionnaireModify.Attributes.Add("data-bs-dismiss", "modal");
+
+
             // 處理QueryString
             Guid? queryGuid;
             if (this.Request.QueryString["QID"] == null || this.Request.QueryString["QID"] == "") // 新增模式
             {
-                this.btnQuestionnaireCancel.Visible = false;
+                this.linkQuestionnaireCancel.Visible = false;
                 this.btnQuestionnaireValidate.Visible = false;
-                this.btnQuestionCancel.Visible = false;
-                this.btnQuestionModify.Visible = false;
+                this.linkQuestionCancel.Visible = false;
+                this.btnQuestionValidate.Visible = false;
                 this.btnNewQuestionnaire.Visible = true;
                 this.answerTabStatus = "disabled";
                 this.statisticTabStatus = "disabled";
@@ -83,11 +86,14 @@ namespace QuestionnaireSystem.SystemAdmin
 
                 /* ------------- 修改模式 ------------- */
 
-                this.btnQuestionnaireCancel.Visible = true;
+                this.linkQuestionnaireCancel.Visible = true;
                 this.btnQuestionnaireValidate.Visible = true;
-                this.btnQuestionCancel.Visible = true;
-                this.btnQuestionModify.Visible = true;
+                this.btnQuestionnaireValidate.Enabled = false;
+                this.linkQuestionCancel.Visible = true;
+                this.btnQuestionValidate.Visible = true;
+                this.btnQuestionValidate.Enabled = false;
                 this.btnNewQuestionnaire.Visible = false;
+                this.optionExplanationStyle = "style='display:inline-block;'";
                 if (this.Request.QueryString["Page"] != null)
                 {
                     this.questionnaireTabStatus = "";
@@ -100,6 +106,8 @@ namespace QuestionnaireSystem.SystemAdmin
                 if (this.Session["QuestionnaireM" + currentQuestionnaire.QuestionnaireID] != null)
                 {
                     this.questionnaireTabModifiedSvg = "<img src='../img/modified.svg'>";
+                    this.btnQuestionnaireValidate.Enabled = true;
+
                     QuestionnaireClass sessionQuestionnaire = (QuestionnaireClass)this.Session["QuestionnaireM" + currentQuestionnaire.QuestionnaireID];
 
                     this.questionnaireName.Text = sessionQuestionnaire.QuestionnaireTitle;
@@ -131,6 +139,8 @@ namespace QuestionnaireSystem.SystemAdmin
                 if (this.Session["QuestionM" + currentQuestionnaire.QuestionnaireID] != null)
                 {
                     this.questionTabModifiedSvg = "<img src='../img/modified.svg'>";
+                    this.btnQuestionValidate.Enabled = true;
+
                     QuestionClass[] sessionQuestions = (QuestionClass[])this.Session["QuestionM" + currentQuestionnaire.QuestionnaireID];
                     foreach (QuestionClass item in sessionQuestions)
                     {
@@ -162,6 +172,36 @@ namespace QuestionnaireSystem.SystemAdmin
                         }
                         string fromDatabase = item.QuestionID == "NewItem" ? "" : "fromDatabase";
 
+                        // 若不是新增的，原本是文字方塊td為空，單複選要把資料庫原本的選項寫入
+                        string originalTd = "";
+                        if (item.QuestionID != "NewItem")
+                        {
+                            int originalType = QuestionManager.GetQuestionByQuestionID(Guid.Parse(item.QuestionID)).Type;
+                            if (originalType == 0)
+                            {
+                                originalTd = $"<td class='questionOriginalOptionHidden'></td>";
+                            }
+                            else
+                            {
+                                string OriginalOptionStr = "";
+                                List<Option> opts = QuestionManager.GetOptionsByQuestionID(Guid.Parse(item.QuestionID));
+                                if (opts == null || opts.Count == 0)
+                                {
+                                    originalTd = $"<td class='questionOriginalOptionHidden'>error</td>";
+                                }
+                                else
+                                {
+                                    for (int i = 0; i < opts.Count; i++)
+                                    {
+                                        OriginalOptionStr += opts[i].OptionContent;
+                                        if (i != opts.Count - 1)
+                                            OriginalOptionStr += " ; ";
+                                    }
+                                    originalTd = $"<td class='questionOriginalOptionHidden'>{OriginalOptionStr}</td>";
+                                }
+                            }
+                        }
+
                         this.ltlQuestionTbody.Text +=
                             $"<tr class='{fromDatabase}' data-ID='{item.QuestionID}'>" +
                             $"<th scope='row'> <input class='form-check-input' type='checkbox' value='' onchange='deleteCheckboxCheck()'> </th>" +
@@ -172,6 +212,7 @@ namespace QuestionnaireSystem.SystemAdmin
                             $"<td><a href='javascript:void(0)' onclick='QListModify(this)'>編輯</a></td>" +
                             $"<td class='questionModeHidden'>{faqIndex}</td>" +
                             $"<td class='questionOptionHidden'>{optionStr}</td>" +
+                            originalTd +
                             $"</tr>";
                     }
                 }
@@ -216,6 +257,7 @@ namespace QuestionnaireSystem.SystemAdmin
                             $"<td><a href='javascript:void(0)' onclick='QListModify(this)'>編輯</a></td>" +
                             $"<td class='questionModeHidden'>{faqIndex}</td>" +
                             $"<td class='questionOptionHidden'>{optionStr}</td>" +
+                            $"<td class='questionOriginalOptionHidden'>{optionStr}</td>" +
                             $"</tr>";
                     }
                 }
@@ -342,17 +384,17 @@ namespace QuestionnaireSystem.SystemAdmin
             }
             else
             {
-                this.ltlCreateFailed.Text = "<script>\n$(function(){\n";
-                this.ltlCreateFailed.Text += "CreateFailedModal.show();\n";
-                this.ltlCreateFailed.Text += "})\n</script>\n";
+                this.ltlModalFailed.Text = "<script>\n$(function(){\n";
+                this.ltlModalFailed.Text += "CreateFailedModal.show();\n";
+                this.ltlModalFailed.Text += "})\n</script>\n";
             }
         }
 
         private void ForbiddenElement()
         {
-            this.btnQuestionnaireCancel.Visible = false;
+            this.linkQuestionnaireCancel.Visible = false;
             this.btnQuestionnaireValidate.Visible = false;
-            this.btnQuestionCancel.Visible = false;
+            this.linkQuestionCancel.Visible = false;
             this.btnQuestionModify.Visible = false;
             this.btnNewQuestionnaire.Visible = false;
             this.questionnaireTabStatus = "disabled";
@@ -365,5 +407,84 @@ namespace QuestionnaireSystem.SystemAdmin
             this.statisticTabContentStatus = "";
         }
 
+        //protected void btnQuestionnaireModify_Click(object sender, EventArgs e)
+        //{
+            //QuestionnaireClass sessionQuestionnaire = (QuestionnaireClass)this.Session["QuestionnaireM" + this.QuestionnaireID];
+            //if (sessionQuestionnaire == null)
+            //{
+            //    this.ltlModalFailed.Text = "<script>\n$(function(){\n";
+            //    this.ltlModalFailed.Text += "$('#modifyFailedMsg').text('Session Null Error.')\n";
+            //    this.ltlModalFailed.Text += "ModifyFailedModal.show();\n";
+            //    this.ltlModalFailed.Text += "})\n</script>\n";
+            //    return;
+            //}
+
+            //DateTime startDate;
+            //DateTime? endDate;
+            //try
+            //{
+            //    // 起始日與結束日
+            //    string[] sDate = sessionQuestionnaire.StartDate.Split('-');
+            //    startDate = new DateTime(Convert.ToInt32(sDate[0]), Convert.ToInt32(sDate[1]), Convert.ToInt32(sDate[2]));
+            //    string[] eDate = sessionQuestionnaire.EndDate.Split('-');
+            //    if (eDate.Length != 3)
+            //        endDate = null;
+            //    else
+            //        endDate = new DateTime(Convert.ToInt32(eDate[0]), Convert.ToInt32(eDate[1]), Convert.ToInt32(eDate[2]));
+
+            //    if (endDate <= startDate)
+            //        throw new Exception("");
+            //}
+            //catch (Exception ex)
+            //{
+            //    this.ltlModalFailed.Text = "<script>\n$(function(){\n";
+            //    this.ltlModalFailed.Text += "$('#modifyFailedMsg').text('日期錯誤')\n";
+            //    this.ltlModalFailed.Text += "ModifyFailedModal.show();\n";
+            //    this.ltlModalFailed.Text += "})\n</script>\n";
+            //    return;
+            //}
+
+            //// 處理Status
+            //int status;
+            //if (sessionQuestionnaire.Active == 0)
+            //{
+            //    if (startDate <= DateTime.Now.Date)
+            //    {
+            //        if (endDate == null || endDate > DateTime.Now.Date)
+            //            status = 1;
+            //        else
+            //            status = 2;
+            //    }
+            //    else
+            //        status = 0;
+            //}
+            //else
+            //{
+            //    status = 3;
+            //}
+
+            //Questionnaire modifiedQuestionnaire = new Questionnaire
+            //{
+            //    QuestionnaireID = Guid.Parse(this.QuestionnaireID),
+            //    Title = sessionQuestionnaire.QuestionnaireTitle,
+            //    Discription = sessionQuestionnaire.Description,
+            //    StartDate = startDate,
+            //    EndDate = endDate,
+            //    Status = status
+            //};
+
+            //bool isSuccess = QuestionManager.UpdateQuestionnaire(modifiedQuestionnaire);
+            //if (!isSuccess)
+            //{
+            //    this.ltlModalFailed.Text = "<script>\n$(function(){\n";
+            //    this.ltlModalFailed.Text += "ModifyFailedModal.show();\n";
+            //    this.ltlModalFailed.Text += "})\n</script>\n";
+            //    return;
+            //}
+            //else
+            //{
+            //    this.Session["QuestionnaireM" + this.QuestionnaireID] = null;
+            //}
+        //}
     }
 }

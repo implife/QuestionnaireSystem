@@ -95,11 +95,12 @@ namespace QuestionnaireSystem.Handler
                     var ans = currentAnswers.Where(obj => obj.QuestionID == item.QuestionID);
                     if (item.Type == 0)  // 文字方塊
                     {
+
                         result +=
                             $"<div class='mt-4 QContainer text_input'>" +
                             $"<h5>{item.Number}. {item.Title}{(item.Required == 0 ? "<span class='required_mark'>*</span>" : "")}</h5>" +
                             $"<div class='option_div'>" +
-                            $"<input type='text' readonly class='form-control-plaintext' value='{(ans == null ? "" : ans.FirstOrDefault().TextboxContent)}'>" +
+                            $"<input type='text' readonly class='form-control-plaintext' value='{(ans.FirstOrDefault() == null ? "" : ans.FirstOrDefault().TextboxContent)}'>" +
                             $"</div></div>";
                     }
                     else if (item.Type == 1)  // 單選(Radiobutton)
@@ -313,6 +314,120 @@ namespace QuestionnaireSystem.Handler
 
                 context.Response.ContentType = "text/plain";
                 context.Response.Write("Success.");
+            }
+            // 問卷修改，修改資料庫
+            else if (string.Compare(action, "QuestionnaireModifyConfirm") == 0)
+            {
+                // check questionnaireID
+                string errMsg;
+                string strQuestionnaireID = context.Request.QueryString["QID"];
+                Questionnaire currentQuestionnaire = AuthManager.AuthQuestionnaireGuid(strQuestionnaireID, out errMsg);
+                if (currentQuestionnaire == null)
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Write(errMsg);
+                    context.Response.End();
+                }
+
+                QuestionnaireClass sessionQuestionnaire = (QuestionnaireClass)context.Session["QuestionnaireM" + strQuestionnaireID];
+                if (sessionQuestionnaire == null)
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Write("Session Null Error.");
+                    context.Response.End();
+                }
+
+                DateTime startDate;
+                DateTime? endDate;
+                try
+                {
+                    // 起始日與結束日
+                    string[] sDate = sessionQuestionnaire.StartDate.Split('-');
+                    startDate = new DateTime(Convert.ToInt32(sDate[0]), Convert.ToInt32(sDate[1]), Convert.ToInt32(sDate[2]));
+                    string[] eDate = sessionQuestionnaire.EndDate.Split('-');
+                    if (eDate.Length != 3)
+                        endDate = null;
+                    else
+                        endDate = new DateTime(Convert.ToInt32(eDate[0]), Convert.ToInt32(eDate[1]), Convert.ToInt32(eDate[2]));
+
+                    if (endDate <= startDate)
+                        throw new Exception("");
+                }
+                catch (Exception ex)
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Write("日期錯誤");
+                    context.Response.End();
+                    return;
+                }
+
+                // 處理Status
+                int status;
+                if (sessionQuestionnaire.Active == 0)
+                {
+                    if (startDate <= DateTime.Now.Date)
+                    {
+                        if (endDate == null || endDate > DateTime.Now.Date)
+                            status = 1;
+                        else
+                            status = 2;
+                    }
+                    else
+                        status = 0;
+                }
+                else
+                {
+                    status = 3;
+                }
+
+                Questionnaire modifiedQuestionnaire = new Questionnaire
+                {
+                    QuestionnaireID = Guid.Parse(strQuestionnaireID),
+                    Title = sessionQuestionnaire.QuestionnaireTitle,
+                    Discription = sessionQuestionnaire.Description,
+                    StartDate = startDate,
+                    EndDate = endDate,
+                    Status = status
+                };
+
+                bool isSuccess = QuestionManager.UpdateQuestionnaire(modifiedQuestionnaire);
+                if (!isSuccess)
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Write("資料庫錯誤");
+                    context.Response.End();
+                }
+                else
+                {
+                    context.Session["QuestionnaireM" + strQuestionnaireID] = null;
+                }
+            }
+            // 問題修改，修改資料庫
+            else if (string.Compare(action, "QuestionModifyConfirm") == 0)
+            {
+                // check questionnaireID
+                string errMsg;
+                string strQuestionnaireID = context.Request.QueryString["QID"];
+                Questionnaire currentQuestionnaire = AuthManager.AuthQuestionnaireGuid(strQuestionnaireID, out errMsg);
+                if (currentQuestionnaire == null)
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Write(errMsg);
+                    context.Response.End();
+                }
+
+                QuestionClass[] sessionQuestions = (QuestionClass[])context.Session["QuestionM" + strQuestionnaireID];
+                bool isSuccess = QuestionManager.UpdateQuestions(sessionQuestions, currentQuestionnaire);
+                if (!isSuccess)
+                {
+                    context.Response.StatusCode = 400;
+                    context.Response.Write("資料庫錯誤");
+                    context.Response.End();
+                }
+                else
+                {
+                    context.Session["QuestionM" + strQuestionnaireID] = null;
+                }
             }
         }
 

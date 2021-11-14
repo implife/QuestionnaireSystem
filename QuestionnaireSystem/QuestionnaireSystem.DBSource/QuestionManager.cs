@@ -347,7 +347,7 @@ namespace QuestionnaireSystem.DBSource
                     List<Questionnaire> listNotStart = context.Questionnaires.Where(item => item.Status == 0).ToList();
                     foreach (Questionnaire item in listNotStart)
                     {
-                        if(item.StartDate.Date <= DateTime.Now.Date)
+                        if (item.StartDate.Date <= DateTime.Now.Date)
                         {
                             context.Questionnaires.Where(obj => obj.QuestionnaireID == item.QuestionnaireID)
                                 .FirstOrDefault().Status = 1;
@@ -395,7 +395,7 @@ namespace QuestionnaireSystem.DBSource
 
                     // 處理Status
                     int status;
-                    if(questionnaire.Active == 0)
+                    if (questionnaire.Active == 0)
                     {
                         if (startDate <= DateTime.Now.Date)
                         {
@@ -403,7 +403,7 @@ namespace QuestionnaireSystem.DBSource
                                 status = 1;
                             else
                                 status = 2;
-                            
+
                         }
                         else
                             status = 0;
@@ -541,7 +541,7 @@ namespace QuestionnaireSystem.DBSource
                     }
                     else
                     {
-                        return context.Answers.Where(obj => obj.Voter.VoterID == voter.VoterID 
+                        return context.Answers.Where(obj => obj.Voter.VoterID == voter.VoterID
                             && obj.Question.QuestionID == question.QuestionID).ToList();
                     }
                 }
@@ -586,13 +586,13 @@ namespace QuestionnaireSystem.DBSource
             }
         }
 
-        private static bool UpdateQuestionnaire(Questionnaire modifiedQuestionnaire)
+        public static bool UpdateQuestionnaire(Questionnaire modifiedQuestionnaire)
         {
             if (GetQuestionnaireByID(modifiedQuestionnaire.QuestionnaireID) == null)
                 throw new Exception("Questionnaire ID Error.");
-            if(modifiedQuestionnaire.Status < 0 || modifiedQuestionnaire.Status > 3)
+            if (modifiedQuestionnaire.Status < 0 || modifiedQuestionnaire.Status > 3)
                 throw new Exception("Questionnaire status is not valid.");
-            if(modifiedQuestionnaire.EndDate != null)
+            if (modifiedQuestionnaire.EndDate != null)
             {
                 if (modifiedQuestionnaire.EndDate <= modifiedQuestionnaire.StartDate)
                     throw new Exception("End Date is less than or equal to Start Date.");
@@ -613,6 +613,269 @@ namespace QuestionnaireSystem.DBSource
                     target.EndDate = modifiedQuestionnaire.EndDate;
                     target.Status = modifiedQuestionnaire.Status;
 
+                    context.SaveChanges();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public static bool UpdateQuestions(QuestionClass[] modifiedQuestions, Questionnaire questionnaire)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    List<Question> originalQuestions = context.Questions.Where(obj => obj.QuestionnaireID == questionnaire.QuestionnaireID).ToList();
+                    List<string> modifiedGuid = modifiedQuestions.Select(obj => obj.QuestionID).ToList();
+                    List<Question> delQ = originalQuestions.Where(obj => modifiedGuid.IndexOf(obj.QuestionID.ToString()) == -1).ToList();
+
+                    // 從資料庫刪除不在modifiedQuestions裡的問題
+                    foreach (Question item in delQ)
+                    {
+                        DeleteAnswersByQuestionID(item.QuestionID, context);
+                        DeleteOptionsByQuestionID(item.QuestionID, context);
+                        DeleteQuestionByQuestionID(item.QuestionID, context);
+                    }
+
+                    // 修改及新增問題
+                    foreach (QuestionClass item in modifiedQuestions)
+                    {
+                        if(item.QuestionTitle == null || item.QuestionTitle == "")
+                            throw new Exception($"Question [{item.QuestionID}] title is null or empty.");
+                        if(item.QuestionType < 0 || item.QuestionType > 2)
+                            throw new Exception($"Question [{item.QuestionID}] type is not valid.");
+                        if(item.QuestionRequired < 0 || item.QuestionRequired > 1)
+                            throw new Exception($"Question [{item.QuestionID}] require is not valid.");
+
+
+                        // 修改問題
+                        if (item.QuestionID != "NewItem")
+                        {
+                            Question targetQ = originalQuestions.Where(obj => obj.QuestionID == Guid.Parse(item.QuestionID)).FirstOrDefault();
+                            if (targetQ == null)
+                                throw new Exception("No Question Found.");
+
+                            // 原本是文字方塊
+                            if (targetQ.Type == 0)  
+                            {
+                                // 改成單選或多選
+                                if (item.QuestionType != 0)
+                                {
+                                    if(item.Options == null)
+                                        throw new Exception("Change Type but there's no option.");
+                                    if(item.Options.Length == 0)
+                                        throw new Exception("Change Type but there's no option.");
+
+                                    Option[] newOptions = item.Options.Select(obj =>
+                                    {
+                                        if (obj.OptionContent == "")
+                                            throw new Exception("Change Type but there's no option.");
+                                        return new Option
+                                        {
+                                            QuestionID = targetQ.QuestionID,
+                                            OptionID = Guid.NewGuid(),
+                                            OptionContent = obj.OptionContent,
+                                            Number = obj.OptionNumber
+                                        };
+                                    }).ToArray();
+
+                                    context.Options.AddRange(newOptions);
+
+                                    // 刪除原本文字方塊的所有答案
+                                    DeleteAnswersByQuestionID(targetQ.QuestionID, context);
+                                }
+                            }
+                            // 原本是單選或多選
+                            else    
+                            {
+                                // 改成文字方塊
+                                if (item.QuestionType == 0)
+                                {
+                                    DeleteAnswersByQuestionID(targetQ.QuestionID, context);
+                                    DeleteOptionsByQuestionID(targetQ.QuestionID, context);
+                                }
+                                // 單選或多選
+                                else
+                                {
+                                    List<Option> originalOptions = context.Options.Where(obj => obj.QuestionID == targetQ.QuestionID)
+                                        .OrderBy(obj => obj.Number).ToList();
+
+                                    if (item.Options == null)
+                                        throw new Exception("There's no option.");
+                                    if(item.Options.Length < originalOptions.Count)
+                                        throw new Exception("Options' quantity is not correct.");
+
+                                    int deleteCount = 0;
+                                    int originalSize = originalOptions.Count;
+                                    bool hasNewOption = false;
+                                    if (item.Options.Length > originalSize)
+                                        hasNewOption = true;
+
+                                    // 原本的選項部分
+                                    for (int i = 0; i < originalSize; i++)
+                                    {
+                                        // option內容為空，刪除該選項
+                                        if(item.Options[i].OptionContent == "")
+                                        {
+                                            Option temp = originalOptions.Where(obj => obj.Number == (i + 1)).FirstOrDefault();
+                                            DeleteAnswersByOptionID(temp.OptionID, context);
+                                            originalOptions.Remove(temp);
+
+                                            Option delItem = context.Options.Where(obj => obj.OptionID == temp.OptionID).FirstOrDefault();
+                                            context.Options.Remove(delItem);
+
+                                            deleteCount++;
+                                        }
+                                        // option內容不為空，更改option內容
+                                        else
+                                        {
+                                            Option temp = originalOptions.Where(obj => obj.Number == (i + 1)).FirstOrDefault();
+                                            temp.OptionContent = item.Options[i].OptionContent;
+
+                                            context.Options.Where(obj => obj.OptionID == temp.OptionID)
+                                                .FirstOrDefault().OptionContent = item.Options[i].OptionContent;
+                                        }
+                                    }
+
+                                    // 新增的選項部分
+                                    if (hasNewOption)
+                                    {
+                                        for (int i = originalSize; i < item.Options.Length; i++)
+                                        {
+                                            Option newOpt = new Option()
+                                            {
+                                                QuestionID = targetQ.QuestionID,
+                                                OptionID = Guid.NewGuid(),
+                                                OptionContent = item.Options[i].OptionContent,
+                                                Number = i - deleteCount + 1
+                                            };
+                                            context.Options.Add(newOpt);
+                                        }
+                                    }
+
+
+                                    // 重編選項順序(不包含新增的)
+                                    for (int i = 0; i < originalOptions.Count; i++)
+                                    {
+                                        Guid tempGuid = originalOptions[i].OptionID;
+                                        var temp = context.Options.Where(obj => obj.OptionID == tempGuid)
+                                            .FirstOrDefault();
+                                        temp.Number = i + 1;
+                                        originalOptions[i].Number = i + 1;
+                                        
+                                    }
+                                }
+                            }
+                            targetQ.Title = item.QuestionTitle;
+                            targetQ.Type = item.QuestionType;
+                            targetQ.Required = item.QuestionRequired;
+                            targetQ.Number = item.QuestionNumber;
+                            targetQ.FAQName = item.FAQName;
+                        }
+                        // 新增問題
+                        else
+                        {
+                            Guid newID = Guid.NewGuid();
+                            context.Questions.Add(new Question
+                            {
+                                QuestionnaireID = questionnaire.QuestionnaireID,
+                                QuestionID = newID,
+                                Title = item.QuestionTitle,
+                                Type = item.QuestionType,
+                                Required = item.QuestionRequired,
+                                Number = item.QuestionNumber,
+                                FAQName = item.FAQName
+                            });
+
+                            // 新增選項
+                            if (item.QuestionType != 0)
+                            {
+                                foreach (OptionClass opt in item.Options)
+                                {
+                                    context.Options.Add(new Option
+                                    {
+                                        OptionID = Guid.NewGuid(),
+                                        QuestionID = newID,
+                                        OptionContent = opt.OptionContent,
+                                        Number = opt.OptionNumber
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    context.SaveChanges();
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        private static void DeleteAnswersByQuestionID(Guid questionID, ContextModel context)
+        {
+            var delAnswers = context.Answers.Where(obj => obj.QuestionID == questionID);
+            context.Answers.RemoveRange(delAnswers);
+        }
+
+        private static void DeleteAnswersByOptionID(Guid optionID, ContextModel context)
+        {
+            var delAnswers = context.Answers.Where(obj => obj.OptionID == optionID);
+            context.Answers.RemoveRange(delAnswers);
+        }
+
+        /// <summary>
+        /// 刪除特定問題的所有Options，必須先刪除跟這個問題有關的所有Answer才能執行
+        /// </summary>
+        /// <param name="questionID"></param>
+        /// <param name="context"></param>
+        private static void DeleteOptionsByQuestionID(Guid questionID, ContextModel context)
+        {
+            var delOptions = context.Options.Where(obj => obj.QuestionID == questionID);
+            if (delOptions == null)
+                throw new Exception("No Options Found.");
+
+            context.Options.RemoveRange(delOptions);
+        }
+
+        /// <summary>
+        /// 刪除特定問題，必須先刪除跟這個問題有關的所有Option和Answer才能執行
+        /// </summary>
+        /// <param name="questionID"></param>
+        /// <param name="context"></param>
+        private static void DeleteQuestionByQuestionID(Guid questionID, ContextModel context)
+        {
+            var delQuestion = context.Questions.Where(obj => obj.QuestionID == questionID).FirstOrDefault();
+            
+            context.Questions.Remove(delQuestion);
+        }
+
+        public static bool DeleteQuestionnaireByID(Guid questionnaireGuid)
+        {
+            try
+            {
+                using (ContextModel context = new ContextModel())
+                {
+                    Questionnaire targetQuestionnaire = context.Questionnaires.Where(obj => obj.QuestionnaireID == questionnaireGuid)
+                        .FirstOrDefault();
+                    if (targetQuestionnaire == null)
+                        throw new Exception("Questionnaire not found.");
+
+                    List<Question> questions = GetQuestionsByQuestionnaireID(targetQuestionnaire.QuestionnaireID).ToList();
+                    foreach (Question item in questions)
+                    {
+                        DeleteAnswersByQuestionID(item.QuestionID, context);
+                        DeleteOptionsByQuestionID(item.QuestionID, context);
+                        DeleteQuestionByQuestionID(item.QuestionID, context);
+                    }
+
+                    context.Questionnaires.Remove(targetQuestionnaire);
                     context.SaveChanges();
                     return true;
                 }

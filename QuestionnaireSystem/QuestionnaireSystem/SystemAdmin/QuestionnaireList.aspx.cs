@@ -1,4 +1,5 @@
-﻿using QuestionnaireSystem.DBSource;
+﻿using QuestionnaireSystem.Auth;
+using QuestionnaireSystem.DBSource;
 using QuestionnaireSystem.ORM.DBModels;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,7 @@ namespace QuestionnaireSystem.SystemAdmin
 
             if (this.IsPostBack)
             {
-                this.Response.Redirect($"/SystemAdmin/QuestionnaireList.aspx?SearchTitle={this.input_search_title.Text}" +
-                    $"&sDate={this.HFStartDate.Value}&eDate={this.HFEndDate.Value}");
+                
             }
             else
             {
@@ -90,7 +90,7 @@ namespace QuestionnaireSystem.SystemAdmin
 
                     this.ltlQList.Text +=
                         $"<th scope='row'>" +
-                            $"<div class='form-check'><input class='form-check-input' type='checkbox' id='ID{item.QuestionnaireID.ToString()}'></div>" +
+                            $"<div class='form-check'><input class='form-check-input' type='checkbox' id='ID{item.QuestionnaireID}'></div>" +
                         $"</th>" +
                         $"<td>{item.QuestionnaireID.ToString().Split('-')[0]}</td>" +
                         $"<td>{Qtitle}</td>" +
@@ -139,6 +139,48 @@ namespace QuestionnaireSystem.SystemAdmin
             {
                 return null;
             }
+        }
+
+        protected void btnQuestionnaireDelete_Click(object sender, EventArgs e)
+        {
+            string strHF = this.HFDeleteID.Value;
+            string[] deleteIdAry = Newtonsoft.Json.JsonConvert.DeserializeObject<string[]>(strHF);
+
+            string failedMsg = "";
+            int failedCount = 0;
+            foreach (string id in deleteIdAry)
+            {
+                string errMsg;
+                Questionnaire target = AuthManager.AuthQuestionnaireGuid(id, out errMsg);
+                if(target == null)
+                {
+                    failedMsg += $"Failed: [{id}], {errMsg}<br />";
+                    failedCount++;
+                    continue;
+                }
+
+                bool isSuccess = QuestionManager.DeleteQuestionnaireByID(target.QuestionnaireID);
+                if (!isSuccess)
+                {
+                    failedMsg += $"Failed: [{target.Title}], Database Error.<br />";
+                    failedCount++;
+                }
+            }
+
+            this.ltlFailedMsg.Text = $"共 {deleteIdAry.Length - failedCount} 個成功，{failedCount} 個失敗<br />";
+            this.ltlFailedMsg.Text += failedMsg;
+
+            this.ltlFailedMsg.Text += "\n<script>\n$(function(){\n";
+            this.ltlFailedMsg.Text += "DeleteFailedModal.show();\n";
+            this.ltlFailedMsg.Text += "})\n</script>\n";
+
+
+        }
+
+        protected void btnSearch_Click(object sender, EventArgs e)
+        {
+            this.Response.Redirect($"/SystemAdmin/QuestionnaireList.aspx?SearchTitle={this.input_search_title.Text}" +
+                    $"&sDate={this.HFStartDate.Value}&eDate={this.HFEndDate.Value}");
         }
     }
 }

@@ -114,6 +114,7 @@
     <Content Include="img\file-earmark-arrow-down.svg" />
     <Content Include="img\invalid_mark.svg" />
     <Content Include="img\modified.svg" />
+    <Content Include="img\question-circle.svg" />
     <Content Include="img\trash.svg" />
     <Content Include="img\valid_mark.svg" />
     <Content Include="Login.aspx" />
@@ -122,6 +123,7 @@
     <Content Include="Scripts\validation.js" />
     <Content Include="Statistic.aspx" />
     <Content Include="SystemAdmin\Detail.aspx" />
+    <Content Include="SystemAdmin\FAQPage.aspx" />
     <Content Include="SystemAdmin\QuestionnaireList.aspx" />
     <Content Include="UserControl\ucPager.ascx" />
     <Content Include="Web.config" />
@@ -175,6 +177,13 @@
     </Compile>
     <Compile Include="SystemAdmin\Detail.aspx.designer.cs">
       <DependentUpon>Detail.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="SystemAdmin\FAQPage.aspx.cs">
+      <DependentUpon>FAQPage.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="SystemAdmin\FAQPage.aspx.designer.cs">
+      <DependentUpon>FAQPage.aspx</DependentUpon>
     </Compile>
     <Compile Include="SystemAdmin\QuestionnaireList.aspx.cs">
       <DependentUpon>QuestionnaireList.aspx</DependentUpon>

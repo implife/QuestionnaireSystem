@@ -65,13 +65,13 @@
             padding: 8px 0;
         }
 
-            .delete_add_div > button,
+            .delete_add_div > #btnTrash,
             .delete_add_div > a {
                 border: none;
                 color: #000;
                 box-shadow: rgba(0, 0, 0, 0.1) 0px 4px 6px -1px, rgba(0, 0, 0, 0.06) 0px 2px 4px -1px;
             }
-            .delete_add_div > button.btn-outline-danger:hover {
+            .delete_add_div > #btnTrash:hover {
                 background-color: #fff;
                 border-color: #fff;
                 color: #dc3545;
@@ -82,42 +82,79 @@
                 color: #198722;
 
             }
+            #btnTrash.notActive {
+                cursor: initial;
+            }
+            #btnTrash.notActive:hover {
+                color: #000;
+            }
     </style>
 
     <script>
+        var noValidate = false;
         var allowValidate = false;
+        var DeleteFailedModal;
 
+        // 確定刪除紐
+        function Delete_Click() {
+            let IDAry = new Array();
+            for (let item of $('tbody input[type=checkbox]:checked')) {
+                IDAry.push($(item).attr('id').slice(2));
+            }
+            $('input[type=hidden][id$=HFDeleteID]').val(JSON.stringify(IDAry));
+
+            noValidate = true;
+        }
 
         $(function () {
+            // Modal變數
+            DeleteFailedModal = new bootstrap.Modal(document.getElementById('DeleteFailedModal'), {
+                keyboard: false
+            });
+
+            // 垃圾桶按鈕
+            $('tbody input[type=checkbox]').on('change', function () {
+                let count = $('tbody input[type=checkbox]:checked').length;
+
+                if (count == 0)
+                    $('#btnTrash').addClass('notActive').attr('data-bs-toggle', '');
+                else
+                    $('#btnTrash').removeClass('notActive').attr('data-bs-toggle', 'modal');
+            })
+
             $('form').submit(function (event) {
-                $('.all_blank_msg').css('visibility', 'hidden');
-                $('#input_search_end').removeClass('myInvalid').siblings('.invalid-feedback').css('display', 'none');
+                if (!noValidate) {
+                    $('.all_blank_msg').css('visibility', 'hidden');
+                    $('#input_search_end').removeClass('myInvalid').siblings('.invalid-feedback').css('display', 'none');
 
 
-                let txtTitle = $('#input_search_title').val().trim();
-                let txtStart = $('#input_search_start').val();
-                let txtEnd = $('#input_search_end').val();
+                    let txtTitle = $('#input_search_title').val().trim();
+                    let txtStart = $('#input_search_start').val();
+                    let txtEnd = $('#input_search_end').val();
 
-                if (txtTitle == '' && txtStart == '' && txtEnd == '') {
-                    $('.all_blank_msg').css('visibility', 'visible');
-                    allowValidate = false;
-                }
-                else if (txtStart != '' && txtEnd != '') {
-                    let dateStart = new Date(txtStart);
-                    let dateEnd = new Date(txtEnd);
-                    if (dateEnd <= dateStart) {
+                    if (txtTitle == '' && txtStart == '' && txtEnd == '') {
+                        $('.all_blank_msg').css('visibility', 'visible');
                         allowValidate = false;
-                        $('#input_search_end').siblings('.invalid-feedback').html("不可等於或小於起始日期");
-                        $('#input_search_end').addClass('myInvalid').siblings('.invalid-feedback').css('display', 'block');
+                    }
+                    else if (txtStart != '' && txtEnd != '') {
+                        let dateStart = new Date(txtStart);
+                        let dateEnd = new Date(txtEnd);
+                        if (dateEnd <= dateStart) {
+                            allowValidate = false;
+                            $('#input_search_end').siblings('.invalid-feedback').html("不可等於或小於起始日期");
+                            $('#input_search_end').addClass('myInvalid').siblings('.invalid-feedback').css('display', 'block');
+                        }
+                        else
+                            allowValidate = true;
                     }
                     else
                         allowValidate = true;
                 }
-                else
-                    allowValidate = true;
+
+                
 
                 // 確認是否通過
-                if (!allowValidate) {
+                if (!noValidate && !allowValidate) {
                     event.preventDefault();
                     event.stopPropagation();
                 }
@@ -135,6 +172,9 @@
 </head>
 <body>
     <form id="form1" runat="server">
+
+        <asp:HiddenField ID="HFDeleteID" runat="server" EnableViewState="false" />
+
         <div class="front_div">
             <a class="btn btn-info" href="/Default.aspx" role="button">前台</a>
         </div>
@@ -142,9 +182,9 @@
         <h3>後台-問卷管理</h3>
         <div class="row">
             <div class="col-2 mySideBar">
-                <a class="btn btn-outline-primary" href="/SystemAdmin/QuestionnaireList.aspx" role="button">問卷管理</a>
+                <a class="btn btn-link" href="#" role="button">問卷管理</a>
                 <br />
-                <a class="btn btn-outline-primary" href="#" role="button">常用問題管理</a>
+                <a class="btn btn-link" href="FAQPage.aspx" role="button">常用問題管理</a>
             </div>
             <div class="col" style="padding-left:7%">
                 <div class="search_div">
@@ -188,14 +228,14 @@
                             </div>
                         </div>
                         <div class="col-md-2" style="margin-top: 37px;">
-                            <asp:Button ID="btnSearch" runat="server" Text="搜尋" CssClass="btn btn-primary" />
+                            <asp:Button ID="btnSearch" runat="server" Text="搜尋" CssClass="btn btn-primary" OnClick="btnSearch_Click" />
                         </div>
                     </div>
                 </div>
                 <div class="row Qtable">
                     <div class="col-8">
                         <div class="delete_add_div">
-                            <button type="button" class="btn btn-outline-danger">
+                            <button type="button" class="btn btn-outline-danger notActive" id="btnTrash" data-bs-target="#QuestionnaireDeleteCheckModal">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-trash" viewBox="0 0 16 16">
                                     <path d="M5.5 5.5A.5.5 0 0 1 6 6v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm2.5 0a.5.5 0 0 1 .5.5v6a.5.5 0 0 1-1 0V6a.5.5 0 0 1 .5-.5zm3 .5a.5.5 0 0 0-1 0v6a.5.5 0 0 0 1 0V6z" />
                                     <path fill-rule="evenodd" d="M14.5 3a1 1 0 0 1-1 1H13v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4h-.5a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1H6a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1h3.5a1 1 0 0 1 1 1v1zM4.118 4 4 4.059V13a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4.059L11.882 4H4.118zM2.5 3V2h11v1h-11z" />
@@ -231,6 +271,39 @@
             <uc1:ucPager runat="server" ID="ucPager" Url="SystemAdmin/QuestionnaireList.aspx" AllowPageCount="5" />
         </div>
 
+        <%--問卷刪除確認Modal--%>
+        <div class="modal fade" id="QuestionnaireDeleteCheckModal" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            刪除問卷有可能造成回答資料遺失無法復原，確定執行嗎？
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <asp:Button ID="btnQuestionnaireDelete" runat="server" Text="確定" CssClass="btn btn-primary" OnClick="btnQuestionnaireDelete_Click" OnClientClick="Delete_Click()" />
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%--問卷刪除失敗Modal--%>
+        <div class="modal fade" id="DeleteFailedModal" data-bs-keyboard="false" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            <asp:Literal ID="ltlFailedMsg" runat="server"></asp:Literal>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <a class="btn btn-primary" role="button" href="QuestionnaireList.aspx">確定</a>
+                        <%--<button type="button" class="btn btn-primary">確定</button>--%>
+                    </div>
+                </div>
+            </div>
+        </div>
     </form>
 </body>
 </html>

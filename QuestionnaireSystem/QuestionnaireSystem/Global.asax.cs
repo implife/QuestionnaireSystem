@@ -36,6 +36,9 @@ namespace QuestionnaireSystem
             var response = HttpContext.Current.Response;
             string path = request.Url.PathAndQuery;
 
+            
+
+
             // SystemAdmin下的頁面都要經過登入檢查
             if (path.StartsWith("/SystemAdmin", StringComparison.InvariantCultureIgnoreCase) ||
                 path.StartsWith("/Handler", StringComparison.InvariantCultureIgnoreCase))
@@ -59,6 +62,30 @@ namespace QuestionnaireSystem
             }
         }
 
+        protected void Application_AcquireRequestState(object sender, EventArgs e)
+        {
+            var request = HttpContext.Current.Request;
+            string path = request.Url.PathAndQuery;
+
+            if (!path.StartsWith("/SystemAdmin/Detail.aspx", StringComparison.InvariantCultureIgnoreCase) &&
+                !path.StartsWith("/Handler", StringComparison.InvariantCultureIgnoreCase))
+            {
+                List<string> tempList = new List<string>();
+                foreach (string item in HttpContext.Current.Session.Keys)
+                {
+                    if (item.StartsWith("QuestionnaireM") || item.StartsWith("QuestionM"))
+                    {
+                        
+                        tempList.Add(item);
+                    }
+                }
+                foreach (var item in tempList)
+                {
+                    HttpContext.Current.Session[item] = null;
+                }
+            }
+        }
+
         protected void Application_Error(object sender, EventArgs e)
         {
 
@@ -66,7 +93,7 @@ namespace QuestionnaireSystem
 
         protected void Session_End(object sender, EventArgs e)
         {
-
+            
         }
 
         protected void Application_End(object sender, EventArgs e)

@@ -33,13 +33,13 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.WebControls.HiddenField HFNewQuestionnaire;
 
         /// <summary>
-        /// ltlCreateFailed control.
+        /// ltlModalFailed control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltlCreateFailed;
+        protected global::System.Web.UI.WebControls.Literal ltlModalFailed;
 
         /// <summary>
         /// ltlErrMsg control.
@@ -87,13 +87,13 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.WebControls.Literal ltlEndDate;
 
         /// <summary>
-        /// btnQuestionnaireCancel control.
+        /// linkQuestionnaireCancel control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnQuestionnaireCancel;
+        protected global::System.Web.UI.WebControls.HyperLink linkQuestionnaireCancel;
 
         /// <summary>
         /// btnQuestionnaireValidate control.
@@ -150,22 +150,22 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.WebControls.Button btnNewQuestionnaire;
 
         /// <summary>
-        /// btnQuestionCancel control.
+        /// linkQuestionCancel control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnQuestionCancel;
+        protected global::System.Web.UI.WebControls.HyperLink linkQuestionCancel;
 
         /// <summary>
-        /// btnQuestionModify control.
+        /// btnQuestionValidate control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnQuestionModify;
+        protected global::System.Web.UI.WebControls.Button btnQuestionValidate;
 
         /// <summary>
         /// ltlAnswerTbody control.
@@ -202,5 +202,14 @@ namespace QuestionnaireSystem.SystemAdmin
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
         protected global::System.Web.UI.WebControls.Button btnQuestionnaireModify;
+
+        /// <summary>
+        /// btnQuestionModify control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnQuestionModify;
     }
 }

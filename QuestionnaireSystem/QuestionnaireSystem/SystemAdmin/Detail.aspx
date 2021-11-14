@@ -156,7 +156,9 @@
             margin-left: 8px;
         }
 
-        .questionModeHidden, .questionOptionHidden {
+        .questionModeHidden,
+        .questionOptionHidden,
+        .questionOriginalOptionHidden {
             display: none;
         }
 
@@ -167,6 +169,68 @@
         tr.questionSelected {
             background-color: #6495ed;
             box-shadow: rgb(100 149 237 / 40%) 0px 2px 4px, rgb(100 149 237 / 30%) 0px 7px 13px -3px, rgb(100 149 237 / 20%) 0px -3px 0px inset;
+        }
+
+        .option_explain_div {
+            display: inline-block;
+            position: relative;
+        }
+
+            .option_explain_div > img {
+                cursor: pointer;
+                margin-bottom: 4px;
+            }
+
+        .explain_popup {
+            visibility: hidden;
+            width: 330px;
+            height: 170px;
+            background-color: rgba(116, 110, 111, 0.9);
+            color: #fff;
+            text-align: left;
+            border-radius: 6px;
+            padding: 12px 10px;
+            position: absolute;
+            z-index: 1000;
+            left: -141px;
+            bottom: calc(100% + 10px);
+        }
+
+            .explain_popup::after {
+                content: "";
+                position: absolute;
+                top: 100%;
+                left: 45%;
+                margin-left: -5px;
+                border-width: 5px;
+                border-style: solid;
+                border-color: rgba(116, 110, 111, 0.9) transparent transparent transparent;
+            }
+
+            .explain_popup.myShow {
+                visibility: visible;
+                -webkit-animation: fadeIn .8s;
+                animation: fadeIn .8s;
+            }
+
+        @-webkit-keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
         }
         /*#endregion 問題分頁 */
 
@@ -207,7 +271,7 @@
     </style>
 
     <script>
-        var QDeleteModal, CreateFailedModal, QuestionnaireModifyModal, QuestionModifyModal;
+        var QDeleteModal, CreateFailedModal, ModifyFailedModal, QuestionnaireModifyModal, QuestionModifyModal, LeavePageModal;
         var FAQJSONObj = JSON.parse('<%= this.FAQJSONString %>');
         var currentQuestionnaireID = '<%= QuestionnaireID %>';
         var AnswerTabContent;   // 儲存回答分頁的HTML
@@ -215,7 +279,6 @@
         var QuestionTabModify = '';
         var SubmitStatus = ''; // 分成New、QuestionnaireModify、QuestionModify
         var AllowSubmit = false;
-
 
         // 選項欄位輸入檢查用
         function optionStringTest(txt) {
@@ -255,7 +318,7 @@
                 // 編輯模式並且編輯的問題是從資料庫來的
                 if (fromDatabase) {
                     let $target = $('#questionTbody').children('tr.questionSelected');
-                    let originalOptions = $target.find('td').eq(6).text();
+                    let originalOptions = $target.find('td').eq(7).text();
                     let originalSize = originalOptions.split(';').length;
                     let optionAry = optionStr.split(';');
 
@@ -266,7 +329,7 @@
                     }
                     else {
                         optionAry.splice(0, originalSize);
-                        let result = optionAry.every(optionStringTest); // backPart為空的話一定是true
+                        let result = optionAry.every(optionStringTest); // 後半為空(數量跟原來一樣)為空的話一定是true
 
                         if (result) {  // 格式正確
                             $('input#question_option').addClass('QValid').removeClass('QInvalid');
@@ -427,14 +490,14 @@
             let questionRequired = $tr.find('td').eq(3).html() == '' ? false : true;
             let optionStr = $tr.find('td').eq(6).text();
 
-            $('#questionMode > option:selected').prop('selected', false);
-            $('#questionMode > option[value=' + questionMode + ']').prop('selected', true);
             $('input#question_title').val(questionTitle);
             $('select#questionType > option:selected').prop('selected', false);
             $('select#questionType > option[value=' + questionType + ']').prop('selected', true);
             $('select#questionType').trigger('change');
             $('#requiredCheck').prop('checked', questionRequired);
             $('input#question_option').val(optionStr);
+            $('#questionMode > option:selected').prop('selected', false);
+            $('#questionMode > option[value=' + questionMode + ']').prop('selected', true);
 
             $('#btnQuestionAdd').text('修改');
             $('#btnQuestionReturn').css('visibility', 'visible');
@@ -580,6 +643,49 @@
             return QuestionAry;
         }
 
+        // 問卷修改按鈕，修改資料庫
+        function btnQuestionnaireModify_Click() {
+            let url = '/Handler/DetailHandler.ashx?QID=' + currentQuestionnaireID + '&Action=QuestionnaireModifyConfirm';
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {},
+                success: function (result, textStatus) {
+                    console.log("Questionnaire Modify Confirm: " + textStatus);
+                    $('#questionnaire-tab').html('問卷');
+                    $('#btnQuestionnaireValidate').prop('disabled', true);
+                },
+                statusCode: {
+                    400: function (result, textStatus) {
+                        $('#modifyFailedMsg').text(result.responseText);
+                        ModifyFailedModal.show();
+                    }
+                }
+            });
+        }
+
+        // 問題修改按鈕，修改資料庫
+        function btnQuestionModify_Click() {
+            let url = '/Handler/DetailHandler.ashx?QID=' + currentQuestionnaireID + '&Action=QuestionModifyConfirm';
+            $.ajax({
+                url: url,
+                type: "POST",
+                data: {},
+                success: function (result, textStatus) {
+                    console.log("Question Modify Confirm: " + textStatus);
+                    $('#question-tab').html('問題');
+                    $('#btnQuestionnaireValidate').prop('disabled', true);
+                },
+                statusCode: {
+                    400: function (result, textStatus) {
+                        console.log(result.responseText)
+                        $('#modifyFailedMsg').text(result.responseText);
+                        ModifyFailedModal.show();
+                    }
+                }
+            });
+        }
+
         var isQuestionModeChange = false;
         $(function () {
             // Modal變數
@@ -589,14 +695,18 @@
             CreateFailedModal = new bootstrap.Modal(document.getElementById('CreateFailedModal'), {
                 keyboard: false
             });
+            ModifyFailedModal = new bootstrap.Modal(document.getElementById('ModifyFailedModal'), {
+                keyboard: false
+            });
             QuestionnaireModifyModal = new bootstrap.Modal(document.getElementById('QuestionnaireModifyCheckModal'), {
                 keyboard: false
             });
             QuestionModifyModal = new bootstrap.Modal(document.getElementById('QuestionModifyCheckModal'), {
                 keyboard: false
             });
-
-            
+            LeavePageModal = new bootstrap.Modal(document.getElementById('LeavePageModal'), {
+                keyboard: false
+            });
 
             // 答案和統計Tab不是Disabled,表示為修改模式
             if (!$('#vote-tab').prop('disabled') && !$('#statistic-tab').prop('disabled')) {
@@ -621,6 +731,7 @@
                         success: function (result, textStatus) {
                             console.log("Questionnaire Modify: " + result);
                             $('#questionnaire-tab').html('<img src="../img/modified.svg">問卷');
+                            $('#btnQuestionnaireValidate').prop('disabled', false);
                         },
                         statusCode: {
                             400: function (result, textStatus) {
@@ -646,6 +757,7 @@
                             success: function (result, textStatus) {
                                 console.log("Questionnaire Modify: " + result);
                                 $('#question-tab').html('<img src="../img/modified.svg">問題');
+                                $('#btnQuestionValidate').prop('disabled', false);
                             },
                             statusCode: {
                                 400: function (result, textStatus) {
@@ -735,6 +847,26 @@
                 }
             })
 
+            // 選項欄位說明的tooltip
+            $('#question_svg').bind({
+                mouseenter: function () {
+                    $('.explain_popup').addClass('myShow');
+                },
+                mouseleave: function () {
+                    $('.explain_popup').removeClass('myShow');
+                }
+            });
+
+            // 離開頁面的三個按鈕要判斷是否呼叫Modal
+            $('#btnFront, #backList_link, #FAQPage_link, #linkQuestionnaireCancel').click(function (event) {
+                if ($('#questionnaire-tab').html() == '<img src="../img/modified.svg">問卷' || $('#question-tab').html() == '<img src="../img/modified.svg">問題') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    $('#LeavePageModalLink').attr('href', $(this).attr('href'));
+                    LeavePageModal.show();
+                }
+            })
+
             // form submit event
             $('form').submit(function (event) {
                 let tbodyValidate = true;
@@ -759,11 +891,11 @@
                     endDateChange();
                 }
 
-                
+
                 if (SubmitStatus == 'New' || SubmitStatus == 'QuestionModify') {
                     tbodyValidate = checkQuestionTbody();    // 檢查問題列表
                 }
-                
+
                 if (SubmitStatus == 'New') {
                     if (!$('input.myValidation').toArray().every(CheckHasValid) || !tbodyValidate) {
                         if (!CheckHasValid($('#questionnaireName')) || !CheckHasValid($('#startDate')) || !CheckHasValid($('#endDate'))) {
@@ -797,12 +929,9 @@
                         event.stopPropagation();
                     }
                     else {
-                        if (!AllowSubmit) {
-                            QuestionnaireModifyModal.toggle();
-                            event.preventDefault();
-                            event.stopPropagation();
-                        }
-
+                        QuestionnaireModifyModal.toggle();
+                        event.preventDefault();
+                        event.stopPropagation();
                     }
                 }
                 else if (SubmitStatus == 'QuestionModify') {
@@ -811,13 +940,16 @@
                         event.stopPropagation();
                         console.log('Question Modify Not Passed.')
                     }
+                    else {
+                        QuestionModifyModal.toggle();
+                        event.preventDefault();
+                        event.stopPropagation();
+                    }
                 }
                 else {
                     event.preventDefault();
                     event.stopPropagation();
                 }
-
-                
             })
 
         })
@@ -828,20 +960,20 @@
 
         <asp:HiddenField ID="HFNewQuestionnaire" runat="server" EnableViewState="false" />
 
-        <asp:Literal ID="ltlCreateFailed" runat="server"></asp:Literal>
+        <asp:Literal ID="ltlModalFailed" runat="server"></asp:Literal>
 
         <div class="front_div">
-            <a class="btn btn-info" href="/Default.aspx" role="button">前台</a>
+            <a class="btn btn-info" href="/Default.aspx" role="button" id="btnFront">前台</a>
         </div>
 
         <h3>後台-問卷管理</h3>
         <div class="row">
             <div class="col-2 mySideBar">
-                <a class="btn btn-outline-primary" href="/SystemAdmin/QuestionnaireList.aspx" role="button">問卷管理</a>
+                <a class="btn btn-link" href="/SystemAdmin/QuestionnaireList.aspx" role="button" id="backList_link">問卷管理</a>
                 <br />
-                <a class="btn btn-outline-primary" href="#" role="button">常用問題管理</a>
+                <a class="btn btn-link" href="FAQPage.aspx" role="button" id="FAQPage_link">常用問題管理</a>
             </div>
-            <div class="col-7 offset-1">
+            <div class="col-8 offset-1">
 
                 <asp:Literal ID="ltlErrMsg" runat="server"></asp:Literal>
 
@@ -907,10 +1039,8 @@
                         </div>
 
                         <div class="mb-3 btn-div">
-                            <asp:Button ID="btnQuestionnaireCancel" runat="server" Text="取消" CssClass="btn btn-secondary" />
+                            <asp:HyperLink ID="linkQuestionnaireCancel" runat="server" CssClass="btn btn-secondary" NavigateUrl="~/SystemAdmin/QuestionnaireList.aspx">取消</asp:HyperLink>
                             <asp:Button ID="btnQuestionnaireValidate" runat="server" Text="修改" CssClass="btn btn-primary" OnClientClick="NewOrModifyClick('QuestionnaireModify')" />
-                            <%--<button type="button" class="btn btn-secondary">取消</button>--%>
-                            <%--<button type="button" class="btn btn-primary" onclick="NewOrModifyClick('QuestionnaireModify')">修改</button>--%>
                         </div>
                     </div>
                     <div class="tab-pane fade <%= questionTabContentStatus %> " id="questionTabContent" role="tabpanel">
@@ -964,7 +1094,18 @@
 
                             </div>
                             <div class="col-3 mt-2">
-                                多個選項以 ； 分隔
+                                多個選項以 ； 分隔 
+                                <div class="option_explain_div" <%= optionExplanationStyle %>>
+                                    <img src="../img/question-circle.svg" id="question_svg" />
+                                    <div class="explain_popup">
+                                        <p>
+                                            1. 如欲修改選項內容，請直接更改，並確保被分號分隔在同一位置<br />
+                                            2. 如欲刪除，請保留分號讓該位置留白<br />
+                                            3. 原本有x選項就請保留x-1個分號，多出來的會被視為新增<br />
+                                            4. 如有x個選項，第x+1個開始會被視為新增
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                             <div class="col-3" style="overflow: visible">
                                 <button type="button" class="btn btn-outline-success" onclick="btnQuestionAddClick()" id="btnQuestionAdd">送出</button>
@@ -1010,10 +1151,8 @@
                             <asp:Button ID="btnNewQuestionnaire" runat="server" Text="建立" CssClass="btn btn-success" OnClick="btnNewQuestionnaire_Click" OnClientClick="NewOrModifyClick('New')" />
                             <span id="validateMsg">請確認問卷分頁的輸入欄！</span>
 
-                            <asp:Button ID="btnQuestionCancel" runat="server" Text="取消" CssClass="btn btn-secondary" />
-                            <asp:Button ID="btnQuestionModify" runat="server" Text="修改" CssClass="btn btn-primary" OnClientClick="NewOrModifyClick('QuestionModify')" />
-                            <%--<button type="button" class="btn btn-secondary">取消</button>
-                            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#QuestionModifyCheckModal">修改</button>--%>
+                            <asp:HyperLink ID="linkQuestionCancel" runat="server" CssClass="btn btn-secondary" NavigateUrl="~/SystemAdmin/QuestionnaireList.aspx">取消</asp:HyperLink>
+                            <asp:Button ID="btnQuestionValidate" runat="server" Text="修改" CssClass="btn btn-primary" OnClientClick="NewOrModifyClick('QuestionModify')" />
                         </div>
                     </div>
                     <div class="tab-pane fade <%= answerTabContentStatus %>" id="voteTabContent" role="tabpanel">
@@ -1068,13 +1207,12 @@
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                        <asp:Button ID="btnQuestionnaireModify" runat="server" CssClass="btn btn-primary" Text="確定" OnClientClick="AllowSubmit=true;"/>
-                        <%--<button type="button" class="btn btn-primary">確定</button>--%>
+                        <asp:Button ID="btnQuestionnaireModify" runat="server" CssClass="btn btn-primary" Text="確定" OnClientClick="btnQuestionnaireModify_Click()" />
                     </div>
                 </div>
             </div>
         </div>
-        <!-- 問題刪除確認Modal -->
+        <%--問題刪除確認Modal--%>
         <div class="modal fade" id="QuestionDeleteCheckModal" data-bs-keyboard="false" tabindex="-1"
             aria-hidden="true">
             <div class="modal-dialog">
@@ -1091,24 +1229,24 @@
                 </div>
             </div>
         </div>
-        <!-- 問題修改確認Modal -->
+        <%--問題修改確認Modal--%>
         <div class="modal fade" id="QuestionModifyCheckModal" data-bs-keyboard="false" tabindex="-1"
             aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-body">
-                        <div class="alert alert-warning" role="alert">
+                        <div class="alert alert-danger" role="alert">
                             即將修改問題內容，有可能造成回答資料遺失無法復原，確定執行嗎?
                         </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                        <button type="button" class="btn btn-primary">確定</button>
+                        <asp:Button ID="btnQuestionModify" runat="server" Text="確定" CssClass="btn btn-primary" OnClientClick="btnQuestionModify_Click()" />
                     </div>
                 </div>
             </div>
         </div>
-        <!-- 新增失敗Modal -->
+        <%--新增失敗Modal--%>
         <div class="modal fade" id="CreateFailedModal" data-bs-keyboard="false" tabindex="-1"
             aria-hidden="true">
             <div class="modal-dialog">
@@ -1119,8 +1257,41 @@
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                         <button type="button" class="btn btn-primary" data-bs-dismiss="modal">確定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%--修改失敗Modal--%>
+        <div class="modal fade" id="ModifyFailedModal" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            修改失敗!<br />
+                            <span id="modifyFailedMsg"></span>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">確定</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%--離開頁面Modal--%>
+        <div class="modal fade" id="LeavePageModal" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            離開頁面修改的資料將不會儲存，確定繼續嗎？
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <a class="btn btn-primary" role="button" href="#" id="LeavePageModalLink">確定</a>
                     </div>
                 </div>
             </div>
