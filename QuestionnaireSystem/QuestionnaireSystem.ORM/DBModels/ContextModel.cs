@@ -16,8 +16,8 @@ namespace QuestionnaireSystem.ORM.DBModels
         public virtual DbSet<Option> Options { get; set; }
         public virtual DbSet<Question> Questions { get; set; }
         public virtual DbSet<Questionnaire> Questionnaires { get; set; }
-        public virtual DbSet<UserInfo> UserInfoes { get; set; }
         public virtual DbSet<Voter> Voters { get; set; }
+        public virtual DbSet<UserInfo> UserInfoes { get; set; }
 
         protected override void OnModelCreating(DbModelBuilder modelBuilder)
         {
@@ -31,18 +31,6 @@ namespace QuestionnaireSystem.ORM.DBModels
                 .WithRequired(e => e.Question)
                 .WillCascadeOnDelete(false);
 
-            modelBuilder.Entity<UserInfo>()
-                .Property(e => e.PWD)
-                .IsUnicode(false);
-
-            modelBuilder.Entity<UserInfo>()
-                .Property(e => e.Account)
-                .IsUnicode(false);
-
-            modelBuilder.Entity<UserInfo>()
-                .Property(e => e.Phone)
-                .IsUnicode(false);
-
             modelBuilder.Entity<Voter>()
                 .Property(e => e.Phone)
                 .IsUnicode(false);
@@ -51,6 +39,18 @@ namespace QuestionnaireSystem.ORM.DBModels
                 .HasMany(e => e.Answers)
                 .WithRequired(e => e.Voter)
                 .WillCascadeOnDelete(false);
+
+            modelBuilder.Entity<UserInfo>()
+                .Property(e => e.Account)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<UserInfo>()
+                .Property(e => e.PWD)
+                .IsUnicode(false);
+
+            modelBuilder.Entity<UserInfo>()
+                .Property(e => e.Phone)
+                .IsUnicode(false);
         }
     }
 }

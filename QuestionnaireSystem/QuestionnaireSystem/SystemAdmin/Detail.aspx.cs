@@ -1,9 +1,11 @@
-﻿using QuestionnaireSystem.DBSource;
+﻿using QuestionnaireSystem.Auth;
+using QuestionnaireSystem.DBSource;
 using QuestionnaireSystem.ORM.DBModels;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -11,6 +13,7 @@ namespace QuestionnaireSystem.SystemAdmin
 {
     public partial class Detail : System.Web.UI.Page
     {
+        public string UserName { get; set; } = "";
         public string questionnaireTabStatus { get; set; } = "active";
         public string questionTabStatus { get; set; } = "";
         public string answerTabStatus { get; set; } = "";
@@ -28,6 +31,13 @@ namespace QuestionnaireSystem.SystemAdmin
 
         protected void Page_Load(object sender, EventArgs e)
         {
+            // 處理登入使用者
+            string strId = (HttpContext.Current.User.Identity as FormsIdentity).Ticket.UserData;
+            string errMsg;
+            UserInfo currentUser = AuthManager.AuthUserInfo(strId, out errMsg);
+            if (currentUser != null)
+                this.UserName = currentUser.Name;
+
             this.btnQuestionnaireModify.Attributes.Add("data-bs-dismiss", "modal");
 
 
@@ -407,84 +417,10 @@ namespace QuestionnaireSystem.SystemAdmin
             this.statisticTabContentStatus = "";
         }
 
-        //protected void btnQuestionnaireModify_Click(object sender, EventArgs e)
-        //{
-            //QuestionnaireClass sessionQuestionnaire = (QuestionnaireClass)this.Session["QuestionnaireM" + this.QuestionnaireID];
-            //if (sessionQuestionnaire == null)
-            //{
-            //    this.ltlModalFailed.Text = "<script>\n$(function(){\n";
-            //    this.ltlModalFailed.Text += "$('#modifyFailedMsg').text('Session Null Error.')\n";
-            //    this.ltlModalFailed.Text += "ModifyFailedModal.show();\n";
-            //    this.ltlModalFailed.Text += "})\n</script>\n";
-            //    return;
-            //}
-
-            //DateTime startDate;
-            //DateTime? endDate;
-            //try
-            //{
-            //    // 起始日與結束日
-            //    string[] sDate = sessionQuestionnaire.StartDate.Split('-');
-            //    startDate = new DateTime(Convert.ToInt32(sDate[0]), Convert.ToInt32(sDate[1]), Convert.ToInt32(sDate[2]));
-            //    string[] eDate = sessionQuestionnaire.EndDate.Split('-');
-            //    if (eDate.Length != 3)
-            //        endDate = null;
-            //    else
-            //        endDate = new DateTime(Convert.ToInt32(eDate[0]), Convert.ToInt32(eDate[1]), Convert.ToInt32(eDate[2]));
-
-            //    if (endDate <= startDate)
-            //        throw new Exception("");
-            //}
-            //catch (Exception ex)
-            //{
-            //    this.ltlModalFailed.Text = "<script>\n$(function(){\n";
-            //    this.ltlModalFailed.Text += "$('#modifyFailedMsg').text('日期錯誤')\n";
-            //    this.ltlModalFailed.Text += "ModifyFailedModal.show();\n";
-            //    this.ltlModalFailed.Text += "})\n</script>\n";
-            //    return;
-            //}
-
-            //// 處理Status
-            //int status;
-            //if (sessionQuestionnaire.Active == 0)
-            //{
-            //    if (startDate <= DateTime.Now.Date)
-            //    {
-            //        if (endDate == null || endDate > DateTime.Now.Date)
-            //            status = 1;
-            //        else
-            //            status = 2;
-            //    }
-            //    else
-            //        status = 0;
-            //}
-            //else
-            //{
-            //    status = 3;
-            //}
-
-            //Questionnaire modifiedQuestionnaire = new Questionnaire
-            //{
-            //    QuestionnaireID = Guid.Parse(this.QuestionnaireID),
-            //    Title = sessionQuestionnaire.QuestionnaireTitle,
-            //    Discription = sessionQuestionnaire.Description,
-            //    StartDate = startDate,
-            //    EndDate = endDate,
-            //    Status = status
-            //};
-
-            //bool isSuccess = QuestionManager.UpdateQuestionnaire(modifiedQuestionnaire);
-            //if (!isSuccess)
-            //{
-            //    this.ltlModalFailed.Text = "<script>\n$(function(){\n";
-            //    this.ltlModalFailed.Text += "ModifyFailedModal.show();\n";
-            //    this.ltlModalFailed.Text += "})\n</script>\n";
-            //    return;
-            //}
-            //else
-            //{
-            //    this.Session["QuestionnaireM" + this.QuestionnaireID] = null;
-            //}
-        //}
+        protected void btnLogout_Click(object sender, EventArgs e)
+        {
+            FormsAuthentication.SignOut();
+            this.Response.Redirect("/Default.aspx");
+        }
     }
 }

@@ -19,7 +19,7 @@
         .front_div {
             position: fixed;
             top: 15px;
-            right: 8%;
+            right: 3%;
         }
 
         .mySideBar {
@@ -277,7 +277,7 @@
         var AnswerTabContent;   // 儲存回答分頁的HTML
         var QuestionnaireTabModify = '';    // 問卷分頁變更時Session的值
         var QuestionTabModify = '';
-        var SubmitStatus = ''; // 分成New、QuestionnaireModify、QuestionModify
+        var SubmitStatus = 'QuestionnaireModify'; // 分成New、QuestionnaireModify、QuestionModify
         var AllowSubmit = false;
 
         // 選項欄位輸入檢查用
@@ -715,6 +715,10 @@
                     SubmitStatus = 'QuestionModify';
                 })
 
+                $('#questionnaire-tab').click(function () {
+                    SubmitStatus = 'QuestionnaireModify';
+                })
+
                 // 問卷頁的輸入欄change，Ajax存入後台Session
                 $('#questionnaireTabContent input, #questionnaireTabContent textarea').on('change', function () {
                     let url = '/Handler/DetailHandler.ashx?QID=' + currentQuestionnaireID + '&Action=QuestionnaireModify';
@@ -782,6 +786,7 @@
                         success: function (result, textStatus) {
                             console.log("Questionnaire Modify: " + result);
                             $('#question-tab').html('<img src="../img/modified.svg">問題');
+                            $('#btnQuestionValidate').prop('disabled', false);
                         },
                         statusCode: {
                             400: function (result, textStatus) {
@@ -792,6 +797,11 @@
                     });
                 })
             }
+
+            //新建按鈕
+            $('#btnNewQuestionnaire').click(function () {
+                SubmitStatus = 'New';
+            })
 
             // 刪除checkbox註冊事件
             $('#questionTabContent tbody input[type=checkbox]').on('change', deleteCheckboxCheck);
@@ -858,7 +868,7 @@
             });
 
             // 離開頁面的三個按鈕要判斷是否呼叫Modal
-            $('#btnFront, #backList_link, #FAQPage_link, #linkQuestionnaireCancel').click(function (event) {
+            $('#btnFront, #backList_link, #FAQPage_link, #linkQuestionnaireCancel, #linkQuestionCancel').click(function (event) {
                 if ($('#questionnaire-tab').html() == '<img src="../img/modified.svg">問卷' || $('#question-tab').html() == '<img src="../img/modified.svg">問題') {
                     event.preventDefault();
                     event.stopPropagation();
@@ -952,6 +962,9 @@
                 }
             })
 
+            $(document).on("keydown", "form", function (event) {
+                return event.key != "Enter";
+            });
         })
     </script>
 </head>
@@ -963,6 +976,7 @@
         <asp:Literal ID="ltlModalFailed" runat="server"></asp:Literal>
 
         <div class="front_div">
+            使用者：<%= this.UserName %>
             <a class="btn btn-info" href="/Default.aspx" role="button" id="btnFront">前台</a>
         </div>
 
@@ -972,6 +986,8 @@
                 <a class="btn btn-link" href="/SystemAdmin/QuestionnaireList.aspx" role="button" id="backList_link">問卷管理</a>
                 <br />
                 <a class="btn btn-link" href="FAQPage.aspx" role="button" id="FAQPage_link">常用問題管理</a>
+                <br />
+                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#logoutModal">登出</button>
             </div>
             <div class="col-8 offset-1">
 
@@ -1040,7 +1056,7 @@
 
                         <div class="mb-3 btn-div">
                             <asp:HyperLink ID="linkQuestionnaireCancel" runat="server" CssClass="btn btn-secondary" NavigateUrl="~/SystemAdmin/QuestionnaireList.aspx">取消</asp:HyperLink>
-                            <asp:Button ID="btnQuestionnaireValidate" runat="server" Text="修改" CssClass="btn btn-primary" OnClientClick="NewOrModifyClick('QuestionnaireModify')" />
+                            <asp:Button ID="btnQuestionnaireValidate" runat="server" Text="修改" CssClass="btn btn-primary" />
                         </div>
                     </div>
                     <div class="tab-pane fade <%= questionTabContentStatus %> " id="questionTabContent" role="tabpanel">
@@ -1050,7 +1066,7 @@
                                 <select class="form-select col-sm-10" id="questionMode">
                                     <option value="-1" selected>自訂</option>
 
-                                    <asp:Literal ID="ltlFAQdropdown" runat="server"></asp:Literal>
+                                    <asp:Literal ID="ltlFAQdropdown" runat="server" EnableViewState="false"></asp:Literal>
 
                                 </select>
                             </div>
@@ -1135,7 +1151,7 @@
                                 </thead>
                                 <tbody id="questionTbody">
 
-                                    <asp:Literal ID="ltlQuestionTbody" runat="server"></asp:Literal>
+                                    <asp:Literal ID="ltlQuestionTbody" runat="server" EnableViewState="false"></asp:Literal>
 
                                 </tbody>
                                 <tbody>
@@ -1148,7 +1164,7 @@
                             </table>
                         </div>
                         <div class="mb-3 btn-div-question">
-                            <asp:Button ID="btnNewQuestionnaire" runat="server" Text="建立" CssClass="btn btn-success" OnClick="btnNewQuestionnaire_Click" OnClientClick="NewOrModifyClick('New')" />
+                            <asp:Button ID="btnNewQuestionnaire" runat="server" Text="建立" CssClass="btn btn-success" OnClick="btnNewQuestionnaire_Click" />
                             <span id="validateMsg">請確認問卷分頁的輸入欄！</span>
 
                             <asp:HyperLink ID="linkQuestionCancel" runat="server" CssClass="btn btn-secondary" NavigateUrl="~/SystemAdmin/QuestionnaireList.aspx">取消</asp:HyperLink>
@@ -1292,6 +1308,23 @@
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                         <a class="btn btn-primary" role="button" href="#" id="LeavePageModalLink">確定</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%--登出Modal--%>
+        <div class="modal fade" id="logoutModal" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            確定登出嗎？
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <asp:Button ID="btnLogout" runat="server" Text="確定" CssClass="btn btn-primary" OnClick="btnLogout_Click" />
                     </div>
                 </div>
             </div>

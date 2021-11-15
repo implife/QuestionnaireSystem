@@ -71,6 +71,8 @@ namespace QuestionnaireSystem
                 !path.StartsWith("/Handler", StringComparison.InvariantCultureIgnoreCase))
             {
                 List<string> tempList = new List<string>();
+                if (HttpContext.Current.Session == null)
+                    return;
                 foreach (string item in HttpContext.Current.Session.Keys)
                 {
                     if (item.StartsWith("QuestionnaireM") || item.StartsWith("QuestionM"))

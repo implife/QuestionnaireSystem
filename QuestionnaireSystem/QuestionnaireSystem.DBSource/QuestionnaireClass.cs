@@ -26,6 +26,7 @@ namespace QuestionnaireSystem.DBSource
         public int QuestionNumber { get; set; }
         public string FAQName { get; set; }
         public OptionClass[] Options { get; set; }
+        public string Modified { get; set; }
     }
 
     public class OptionClass

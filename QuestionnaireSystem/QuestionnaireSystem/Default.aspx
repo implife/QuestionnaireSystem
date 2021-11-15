@@ -19,7 +19,11 @@
         .login_div {
             position: fixed;
             top: 15px;
-            right: 8%;
+            right: 3%;
+        }
+
+        .login_div > a {
+            margin-left: 6px;
         }
 
         h3 {

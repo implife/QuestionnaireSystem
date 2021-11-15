@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Security;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
@@ -12,8 +13,17 @@ namespace QuestionnaireSystem.SystemAdmin
 {
     public partial class QuestionnaireList : System.Web.UI.Page
     {
+        public string UserName { get; set; } = "";
         protected void Page_Load(object sender, EventArgs e)
         {
+            // 處理登入使用者
+            string strId = (HttpContext.Current.User.Identity as FormsIdentity).Ticket.UserData;
+            string errMsg;
+            UserInfo currentUser = AuthManager.AuthUserInfo(strId, out errMsg);
+            if (currentUser != null)
+                this.UserName = currentUser.Name;
+
+
             this.input_search_title.Attributes.Add("placeholder", "問卷標題");
             this.ltlStartDate.Text = "<input type='date' class='form-control myValidation' id='input_search_start' />";
             this.ltlEndDate.Text = "<input type='date' class='form-control myValidation' id='input_search_end' />";
@@ -181,6 +191,12 @@ namespace QuestionnaireSystem.SystemAdmin
         {
             this.Response.Redirect($"/SystemAdmin/QuestionnaireList.aspx?SearchTitle={this.input_search_title.Text}" +
                     $"&sDate={this.HFStartDate.Value}&eDate={this.HFEndDate.Value}");
+        }
+
+        protected void btnLogout_Click(object sender, EventArgs e)
+        {
+            FormsAuthentication.SignOut();
+            this.Response.Redirect("/Default.aspx");
         }
     }
 }

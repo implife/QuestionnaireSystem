@@ -1,4 +1,5 @@
-﻿using QuestionnaireSystem.DBSource;
+﻿using QuestionnaireSystem.Auth;
+using QuestionnaireSystem.DBSource;
 using QuestionnaireSystem.ORM.DBModels;
 using System;
 using System.Collections.Generic;
@@ -21,20 +22,11 @@ namespace QuestionnaireSystem
             //檢查登入狀態
             if (this.Request.IsAuthenticated)
             {
-                string id = (HttpContext.Current.User.Identity as FormsIdentity).Ticket.UserData;
-                Guid logInUserGuid;
-                try
-                {
-                    logInUserGuid = Guid.Parse(id);
-                    UserInfo currentUser = UserInfoManager.GetUserInfoByUserID(logInUserGuid);
+                string strId = (HttpContext.Current.User.Identity as FormsIdentity).Ticket.UserData;
+                string errMsg;
+                UserInfo currentUser = AuthManager.AuthUserInfo(strId, out errMsg);
 
-                    this.ltlLogin.Text = $"<a class='btn btn-outline-info' href='/SystemAdmin/QuestionnaireList.aspx' role='button'>後台管理</a>";
-                }
-                catch (Exception ex)
-                {
-                    this.ltlLogin.Text = "<a class='btn btn-info' href='Login.aspx' role='button'>登入</a>";
-                }
-                
+                this.ltlLogin.Text = $"使用者：{currentUser.Name}<a class='btn btn-outline-info' href='/SystemAdmin/QuestionnaireList.aspx' role='button'>後台管理</a>";
             }
             else
             {

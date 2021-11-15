@@ -19,7 +19,7 @@
         .front_div {
             position: fixed;
             top: 15px;
-            right: 8%;
+            right: 3%;
         }
 
         .mySideBar {
@@ -176,6 +176,7 @@
         <asp:HiddenField ID="HFDeleteID" runat="server" EnableViewState="false" />
 
         <div class="front_div">
+            使用者：<%= this.UserName %>
             <a class="btn btn-info" href="/Default.aspx" role="button">前台</a>
         </div>
 
@@ -185,6 +186,8 @@
                 <a class="btn btn-link" href="#" role="button">問卷管理</a>
                 <br />
                 <a class="btn btn-link" href="FAQPage.aspx" role="button">常用問題管理</a>
+                <br />
+                <button type="button" class="btn btn-link" data-bs-toggle="modal" data-bs-target="#logoutModal">登出</button>
             </div>
             <div class="col" style="padding-left:7%">
                 <div class="search_div">
@@ -299,7 +302,23 @@
                     </div>
                     <div class="modal-footer">
                         <a class="btn btn-primary" role="button" href="QuestionnaireList.aspx">確定</a>
-                        <%--<button type="button" class="btn btn-primary">確定</button>--%>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%--登出Modal--%>
+        <div class="modal fade" id="logoutModal" data-bs-keyboard="false" tabindex="-1"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="alert alert-danger" role="alert">
+                            確定登出嗎？
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                        <asp:Button ID="btnLogout" runat="server" Text="確定" CssClass="btn btn-primary" OnClick="btnLogout_Click" />
                     </div>
                 </div>
             </div>

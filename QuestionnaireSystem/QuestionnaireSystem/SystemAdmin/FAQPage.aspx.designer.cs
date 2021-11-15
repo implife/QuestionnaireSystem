@@ -24,6 +24,24 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.HtmlControls.HtmlForm form1;
 
         /// <summary>
+        /// HFModifiedData control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.HiddenField HFModifiedData;
+
+        /// <summary>
+        /// FAQ_Name control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.TextBox FAQ_Name;
+
+        /// <summary>
         /// question_title control.
         /// </summary>
         /// <remarks>
@@ -60,12 +78,30 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::System.Web.UI.WebControls.HyperLink linkCancel;
 
         /// <summary>
-        /// btnValidate control.
+        /// btnLogout control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Button btnValidate;
+        protected global::System.Web.UI.WebControls.Button btnLogout;
+
+        /// <summary>
+        /// btnModifyConfirm control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Button btnModifyConfirm;
+
+        /// <summary>
+        /// ltlResultMsg control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlResultMsg;
     }
 }

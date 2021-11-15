@@ -33,6 +33,26 @@ namespace QuestionnaireSystem.Auth
             return guid;
         }
 
+        public static UserInfo AuthUserInfo(string strUserGuid, out string errMsg)
+        {
+            Guid? userID = AuthGuid(strUserGuid, out errMsg);
+            if (userID == null)
+            {
+                return null;
+            }
+
+            UserInfo user = UserInfoManager.GetUserInfoByUserID((Guid)userID);
+
+            if (user == null)
+            {
+                errMsg = "No User found.";
+                return null;
+            }
+
+            errMsg = "";
+            return user;
+        }
+
         public static Voter AuthVoterGuid(string strVoterGuid, out string errMsg)
         {
             Guid? voterID = AuthGuid(strVoterGuid, out errMsg);
