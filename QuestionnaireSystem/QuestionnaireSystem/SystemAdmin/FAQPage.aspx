@@ -542,9 +542,9 @@
                 }
             })
 
-            //$(document).on("keydown", "form", function (event) {
-            //    return event.key != "Enter";
-            //});
+            $(document).on("keydown", "form", function (event) {
+                return event.key != "Enter";
+            });
 
         });
     </script>

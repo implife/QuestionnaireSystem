@@ -23,11 +23,12 @@ namespace QuestionnaireSystem.SystemAdmin
         public string answerTabContentStatus { get; set; } = "";
         public string statisticTabContentStatus { get; set; } = "";
         public string activeCheck { get; set; } = "checked";
-        public string FAQJSONString { get; set; } = "";
+        public string FAQJSONString { get; set; } = "[]";
         public string QuestionnaireID { get; set; } = "";
         public string questionnaireTabModifiedSvg { get; set; } = "";
         public string questionTabModifiedSvg { get; set; } = "";
         public string optionExplanationStyle { get; set; } = "style='display:none;'";
+        public string pieChartData { get; set; } = "[]";
 
         protected void Page_Load(object sender, EventArgs e)
         {
@@ -316,21 +317,43 @@ namespace QuestionnaireSystem.SystemAdmin
                 }
 
                 // 統計分頁
+                // PieChart所需的JSON Object
+                List<Rootobject> pieChartData = new List<Rootobject>();
+
+                this.ltlProgress.Text = "";
+                this.ltlPieChart.Text = "";
                 int totalVotersCount = QuestionManager.GetTotalVoterQuantity(currentQuestionnaire.QuestionnaireID);
+
+                // Render Progress統計
                 foreach (Question item in currentQuestions)
                 {
                     if (item.Type == 0)  // 文字方塊
                     {
-                        this.ltlStatisticPane.Text +=
-                            $"<div class='mt-4'>" +
+                        this.ltlProgress.Text +=
+                            $"<div class='mt-4' id='ID{item.QuestionID}'>" +
+                            $"<h5>{item.Number}. {item.Title}</h5>" +
+                            $"<div class='option_div'>--</div>" +
+                            $"</div>";
+
+                        this.ltlPieChart.Text +=
+                            $"<div id='chart_{item.QuestionID}'>" +
                             $"<h5>{item.Number}. {item.Title}</h5>" +
                             $"<div class='option_div'>--</div>" +
                             $"</div>";
                     }
                     else
                     {
-                        this.ltlStatisticPane.Text +=
-                            $"<div class='mt-4'>" +
+                        // PieChart部分
+                        this.ltlPieChart.Text += $"<div id='chart_{item.QuestionID}'></div>";
+                        Rootobject temp = new Rootobject
+                        {
+                            title = $"{item.Number}. {item.Title} {(item.Type == 2 ? "(複選)" : "")}",
+                            ID = item.QuestionID.ToString()
+                        };
+
+                        // Progress部分
+                        this.ltlProgress.Text +=
+                            $"<div class='mt-4' id='ID{item.QuestionID}'>" +
                             $"<h5>{item.Number}. {item.Title} {(item.Type == 2 ? "(複選)" : "")}</h5>" +
                             $"<div class='option_div'>";
 
@@ -338,11 +361,23 @@ namespace QuestionnaireSystem.SystemAdmin
                         List<int> countEveryOption = QuestionManager.GetVotersCountOfEveryOption(item.QuestionID);
 
                         int i = 0;
-                        foreach (int countOpt in countEveryOption)
+                        Column[] cols = new Column[options.Count];
+                        foreach (int voteCount in countEveryOption)
                         {
-                            string strCount = ((double)countOpt * 100 / totalVotersCount).ToString("0.##");
+                            // PieChart部分, JSON
+                            for (int j = 0; j < options.Count; j++)
+                            {
+                                cols[j] = new Column
+                                {
+                                    optionName = options[j].OptionContent,
+                                    votes = countEveryOption[j]
+                                };
+                            }
+
+                            // Progress部分
+                            string strCount = ((double)voteCount * 100 / totalVotersCount).ToString("0.##");
                             strCount = (strCount == "" || strCount == "NaN") ? "0" : strCount;
-                            this.ltlStatisticPane.Text +=
+                            this.ltlProgress.Text +=
                                 $"<div class='myOption'>" +
                                 $"<div class='option_content'>{options[i].OptionContent}</div>" +
                                 $"<div class='row'>" +
@@ -350,15 +385,69 @@ namespace QuestionnaireSystem.SystemAdmin
                                 $"<div class='progress-bar progress-bar-striped' role='progressbar' " +
                                     $"style='width: {strCount}%'></div>" +
                                 $"</div>" +
-                                $"<div class='col-md-4 progress_text'>{strCount}% ({countOpt})</div>" +
+                                $"<div class='col-md-4 progress_text'>{strCount}% ({voteCount})</div>" +
                                 $"</div>" +
                                 $"</div>";
                             i++;
                         }
 
-                        this.ltlStatisticPane.Text += $"</div></div>";
+                        // Progress部分
+                        this.ltlProgress.Text += $"</div></div>";
+
+                        // PieChart部分, JSON
+                        temp.columns = cols;
+                        pieChartData.Add(temp);
                     }
                 }
+
+                string pieChartJSON = Newtonsoft.Json.JsonConvert.SerializeObject(pieChartData);
+                this.pieChartData = pieChartJSON;
+
+
+
+                //int totalVotersCount = QuestionManager.GetTotalVoterQuantity(currentQuestionnaire.QuestionnaireID);
+                //foreach (Question item in currentQuestions)
+                //{
+                //    if (item.Type == 0)  // 文字方塊
+                //    {
+                //        this.ltlStatisticPane.Text +=
+                //            $"<div class='mt-4'>" +
+                //            $"<h5>{item.Number}. {item.Title}</h5>" +
+                //            $"<div class='option_div'>--</div>" +
+                //            $"</div>";
+                //    }
+                //    else
+                //    {
+                //        this.ltlStatisticPane.Text +=
+                //            $"<div class='mt-4'>" +
+                //            $"<h5>{item.Number}. {item.Title} {(item.Type == 2 ? "(複選)" : "")}</h5>" +
+                //            $"<div class='option_div'>";
+
+                //        List<Option> options = QuestionManager.GetOptionsByQuestionID(item.QuestionID);
+                //        List<int> countEveryOption = QuestionManager.GetVotersCountOfEveryOption(item.QuestionID);
+
+                //        int i = 0;
+                //        foreach (int countOpt in countEveryOption)
+                //        {
+                //            string strCount = ((double)countOpt * 100 / totalVotersCount).ToString("0.##");
+                //            strCount = (strCount == "" || strCount == "NaN") ? "0" : strCount;
+                //            this.ltlStatisticPane.Text +=
+                //                $"<div class='myOption'>" +
+                //                $"<div class='option_content'>{options[i].OptionContent}</div>" +
+                //                $"<div class='row'>" +
+                //                $"<div class='progress col-md-4'>" +
+                //                $"<div class='progress-bar progress-bar-striped' role='progressbar' " +
+                //                    $"style='width: {strCount}%'></div>" +
+                //                $"</div>" +
+                //                $"<div class='col-md-4 progress_text'>{strCount}% ({countOpt})</div>" +
+                //                $"</div>" +
+                //                $"</div>";
+                //            i++;
+                //        }
+
+                //        this.ltlStatisticPane.Text += $"</div></div>";
+                //    }
+                //}
             }
 
             // FAQ資料
@@ -421,6 +510,19 @@ namespace QuestionnaireSystem.SystemAdmin
         {
             FormsAuthentication.SignOut();
             this.Response.Redirect("/Default.aspx");
+        }
+
+        class Rootobject
+        {
+            public Column[] columns { get; set; }
+            public string title { get; set; }
+            public string ID { get; set; }
+        }
+
+        class Column
+        {
+            public string optionName { get; set; }
+            public int votes { get; set; }
         }
     }
 }

@@ -186,13 +186,22 @@ namespace QuestionnaireSystem.SystemAdmin
         protected global::QuestionnaireSystem.UserControl.ucPager ucPager;
 
         /// <summary>
-        /// ltlStatisticPane control.
+        /// ltlPieChart control.
         /// </summary>
         /// <remarks>
         /// Auto-generated field.
         /// To modify move field declaration from designer file to code-behind file.
         /// </remarks>
-        protected global::System.Web.UI.WebControls.Literal ltlStatisticPane;
+        protected global::System.Web.UI.WebControls.Literal ltlPieChart;
+
+        /// <summary>
+        /// ltlProgress control.
+        /// </summary>
+        /// <remarks>
+        /// Auto-generated field.
+        /// To modify move field declaration from designer file to code-behind file.
+        /// </remarks>
+        protected global::System.Web.UI.WebControls.Literal ltlProgress;
 
         /// <summary>
         /// btnQuestionnaireModify control.

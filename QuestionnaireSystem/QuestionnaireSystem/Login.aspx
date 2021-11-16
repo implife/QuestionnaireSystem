@@ -62,7 +62,7 @@
                     <label for="login_PWD" class="col-form-label">密碼</label>
                 </div>
                 <div class="col-auto">
-                    <asp:TextBox ID="login_PWD" runat="server" CssClass="form-control myValidation validateNullWhiteSpace validateTextLength validateAlphNumOnly"></asp:TextBox>
+                    <asp:TextBox ID="login_PWD" runat="server" TextMode="Password" CssClass="form-control myValidation validateNullWhiteSpace validateTextLength validateAlphNumOnly"></asp:TextBox>
                     <div class="invalid-feedback">
                     </div>
                     <div class="valid-feedback">

@@ -23,6 +23,9 @@ namespace QuestionnaireSystem.SystemAdmin
             if (currentUser != null)
                 this.UserName = currentUser.Name;
 
+            if (this.IsPostBack)
+                return;
+
             QuestionClass[] FAQData = QuestionManager.GetFAQList();
             if (FAQData == null)
                 return;

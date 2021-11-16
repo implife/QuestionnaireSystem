@@ -84,13 +84,16 @@ namespace QuestionnaireSystem
                     this.ltlQList.Text = "<tr><td colspan='6' class='no_data_msg'>錯誤</td></tr>";
                     return;
                 }
-                else if(Qlist.Count == 0)
+                
+                Qlist = Qlist.Where(obj => obj.Status != 3).ToList();
+
+                
+                if(Qlist.Count == 0)
                 {
                     this.ltlQList.Text = "<tr><td colspan='6' class='no_data_msg'>無結果</td></tr>";
                     return;
                 }
 
-                Qlist = Qlist.Where(obj => obj.Status != 3).ToList();
                 this.ucPager.TotalItemSize = Qlist.Count;
                 int currentPage = this.ucPager.GetCurrentPage();
                 int sizeInPage = this.ucPager.ItemSizeInPage;

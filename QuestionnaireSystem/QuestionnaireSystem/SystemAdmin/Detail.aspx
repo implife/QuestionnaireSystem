@@ -14,6 +14,7 @@
     <script src="../Scripts/bootstrap.js"></script>
     <script src="../Scripts/jquery-3.6.0.min.js"></script>
     <script src="../Scripts/validation.js"></script>
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
 
     <style>
         .front_div {
@@ -267,6 +268,44 @@
             margin-top: -5px;
         }
 
+        #switch_div_out {
+            width: 500px;
+            align-items: flex-end;
+        }
+
+        #switch_div {
+            width: 100px;
+            margin-left: auto;
+            margin-right: 0px;
+        }
+
+        .chartTabContent {
+            display: none;
+            -webkit-animation: fadeEffect 1s;
+            animation: fadeEffect .8s;
+        }
+
+        /* Fade in tabs */
+        @-webkit-keyframes fadeEffect {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeEffect {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
         /*#endregion 統計分頁 */
     </style>
 
@@ -277,8 +316,9 @@
         var AnswerTabContent;   // 儲存回答分頁的HTML
         var QuestionnaireTabModify = '';    // 問卷分頁變更時Session的值
         var QuestionTabModify = '';
-        var SubmitStatus = 'QuestionnaireModify'; // 分成New、QuestionnaireModify、QuestionModify
+        var SubmitStatus = 'QuestionnaireModify'; // 分成New、QuestionnaireModify、QuestionModify, Logout
         var AllowSubmit = false;
+        var pieChartData = JSON.parse('<%= this.pieChartData %>'); // 統計頁的Pie Chart Data
 
         // 選項欄位輸入檢查用
         function optionStringTest(txt) {
@@ -410,6 +450,8 @@
                 $('select#questionType').trigger('change');
                 $('#requiredCheck').prop('checked', false);
                 $('input#question_option').val('');
+
+                checkQuestionTbody();
             }
         }
 
@@ -686,6 +728,43 @@
             });
         }
 
+        // AJAX API 下載完後呼叫
+        function ParseDataAndDraw() {
+            for (var item of pieChartData) {
+                // Columns
+                let resultCols = new Array();
+                for (var col of item.columns) {
+                    resultCols.push([col.optionName, col.votes]);
+                }
+
+                drawChart(item.title, resultCols, item.ID);
+            }
+        }
+
+        // 畫Pie Chart
+        function drawChart(title, columns, ID) {
+
+            // Create the data table.
+            var data = new google.visualization.DataTable();
+            data.addColumn('string', 'Option');
+            data.addColumn('number', 'vote');
+            data.addRows(columns);
+
+            // Set chart options
+            var options = {
+                'title': title,
+                'width': 720,
+                'height': 444,
+                'is3D': true,
+                'titleTextStyle': {
+                    fontSize: 18
+                }
+            };
+
+            var chart = new google.visualization.PieChart(document.getElementById('chart_' + ID));
+            chart.draw(data, options);
+        }
+
         var isQuestionModeChange = false;
         $(function () {
             // Modal變數
@@ -708,8 +787,23 @@
                 keyboard: false
             });
 
+            // google chart
+            google.charts.load('current', { 'packages': ['corechart'] });
+            google.charts.setOnLoadCallback(ParseDataAndDraw);
+
+            // 統計頁圓餅圖切換Switch
+            $('#PieChartSwitch').on('change', function () {
+                if ($(this).prop('checked')) {
+                    $('#pie_chart_container').css('display', 'block');
+                    $('#progress_container').css('display', 'none');
+                } else {
+                    $('#pie_chart_container').css('display', 'none');
+                    $('#progress_container').css('display', 'block');
+                }
+            })
+
             // 答案和統計Tab不是Disabled,表示為修改模式
-            if (!$('#vote-tab').prop('disabled') && !$('#statistic-tab').prop('disabled')) {
+            if (!$('#vote-tab').hasClass('disabled') && !$('#statistic-tab').hasClass('disabled')) {
 
                 $('#question-tab').click(function () {
                     SubmitStatus = 'QuestionModify';
@@ -739,7 +833,7 @@
                         },
                         statusCode: {
                             400: function (result, textStatus) {
-                                console.log('400result: ' + result);
+                                console.log('400result: ' + result.responseText);
                                 console.log('400textStatus: ' + textStatus);
                             }
                         }
@@ -765,7 +859,7 @@
                             },
                             statusCode: {
                                 400: function (result, textStatus) {
-                                    console.log('400result: ' + result);
+                                    console.log('400result: ' + result.responseText);
                                     console.log('400textStatus: ' + textStatus);
                                 }
                             }
@@ -790,7 +884,7 @@
                         },
                         statusCode: {
                             400: function (result, textStatus) {
-                                console.log('400result: ' + result);
+                                console.log('400result: ' + result.responseText);
                                 console.log('400textStatus: ' + textStatus);
                             }
                         }
@@ -798,9 +892,24 @@
                 })
             }
 
-            //新建按鈕
+            // 新建按鈕
             $('#btnNewQuestionnaire').click(function () {
                 SubmitStatus = 'New';
+            })
+
+            // 登出按鈕
+            $('#btnLogout').click(function () {
+                SubmitStatus = 'Logout';
+            })
+
+            // 問卷修改驗證按鈕
+            $('#btnQuestionnaireValidate').click(function () {
+                SubmitStatus = 'QuestionnaireModify';
+            })
+
+            // 問題修改驗證按鈕
+            $('#btnQuestionValidate').click(function () {
+                SubmitStatus = 'QuestionModify';
             })
 
             // 刪除checkbox註冊事件
@@ -955,6 +1064,9 @@
                         event.preventDefault();
                         event.stopPropagation();
                     }
+                }
+                else if (SubmitStatus == 'Logout') {
+
                 }
                 else {
                     event.preventDefault();
@@ -1204,7 +1316,28 @@
                     </div>
                     <div class="tab-pane fade <%= statisticTabContentStatus %>" id="statisticTabContent" role="tabpanel">
 
-                        <asp:Literal ID="ltlStatisticPane" runat="server"></asp:Literal>
+                        <div class="mt-4">
+                            <div id="switch_div_out">
+                                <div class="form-check form-switch" id="switch_div">
+                                    <input class="form-check-input" type="checkbox" id="PieChartSwitch" />
+                                    <label class="form-check-label" for="PieChartSwitch">圓餅圖</label>
+                                </div>
+                            </div>
+
+                            <div class="chartTabContent" id="pie_chart_container">
+
+                                <asp:Literal ID="ltlPieChart" runat="server"></asp:Literal>
+
+                            </div>
+
+                            <div class="chartTabContent" id="progress_container" style="display: block">
+
+                                <asp:Literal ID="ltlProgress" runat="server"></asp:Literal>
+
+                            </div>
+                        </div>
+
+                        <%--<asp:Literal ID="ltlStatisticPane" runat="server"></asp:Literal>--%>
 
                     </div>
                 </div>

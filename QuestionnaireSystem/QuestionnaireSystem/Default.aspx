@@ -64,16 +64,13 @@
                 $('.all_blank_msg').css('visibility', 'hidden');
                 $('#input_search_end').removeClass('myInvalid').siblings('.invalid-feedback').css('display', 'none');
 
-
                 let txtTitle = $('#input_search_title').val().trim();
+                $('#input_search_title').val(txtTitle);
+
                 let txtStart = $('#input_search_start').val();
                 let txtEnd = $('#input_search_end').val();
 
-                if (txtTitle == '' && txtStart == '' && txtEnd == '') {
-                    $('.all_blank_msg').css('visibility', 'visible');
-                    allowValidate = false;
-                }
-                else if (txtStart != '' && txtEnd != '') {
+                if (txtStart != '' && txtEnd != '') {
                     let dateStart = new Date(txtStart);
                     let dateEnd = new Date(txtEnd);
                     if (dateEnd <= dateStart) {

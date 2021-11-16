@@ -85,7 +85,7 @@ namespace QuestionnaireSystem.DBSource
             {
                 using (ContextModel context = new ContextModel())
                 {
-                    return context.Questionnaires.Where(item => item.QuestionnaireID.Equals(qu.QuestionnaireID)).FirstOrDefault();
+                    return context.Questionnaires.Where(item => item.QuestionnaireID == qu.QuestionnaireID).FirstOrDefault();
                 }
             }
             catch (Exception ex)
