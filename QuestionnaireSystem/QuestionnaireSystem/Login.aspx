@@ -72,9 +72,9 @@
         </div>
 
         <div class="row mt-3 mb-5">
-            <div class="col-md-1 offset-md-5" style="padding-left:6%">
+            <div class="col-3 offset-md-5" style="padding-left:6%">
                 <asp:Button ID="btnLogin" runat="server" Text="登入" CssClass="btn btn-outline-primary" OnClick="btnLogin_Click"/>
-                <asp:Label ID="lblMsg" runat="server" Text="" EnableViewState="false"></asp:Label>
+                <asp:Literal ID="ltlMsg" runat="server" EnableViewState="false"></asp:Literal>
             </div>
         </div>
     </form>

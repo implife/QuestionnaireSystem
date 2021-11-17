@@ -78,7 +78,7 @@ namespace QuestionnaireSystem
             }
             else
             {
-                this.lblMsg.Text = "帳號或密碼錯誤";
+                this.ltlMsg.Text = "<span style='color:#dc3545'>帳號或密碼錯誤</span>";
                 return;
             }
         }

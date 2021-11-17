@@ -381,6 +381,14 @@
                             $('input#question_option').siblings('.invalid-feedback').html('第' + originalSize + '個分號開始前後不可為空').css('display', 'block');
                         }
                     }
+
+                    if (originalSize == 1) {
+                        if (optionStr.trim() == '') {
+                            $('input#question_option').addClass('QInvalid').removeClass('QValid');
+                            $('input#question_option').siblings('.invalid-feedback').html('須至少輸入一個選項').css('display', 'block');
+                        }
+                    }
+                    
                 }
                 // 編輯的問題不是從資料庫來的, 或新增問題
                 else {
