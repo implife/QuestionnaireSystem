@@ -150,7 +150,7 @@ namespace QuestionnaireSystem
             try
             {
                 if (strDate == null)
-                    throw new NullReferenceException();
+                    return null;
                 string[] strStart = strDate.Split('-');
                 if (strStart.Length != 3)
                     throw new Exception("StartDate bad Query.");
